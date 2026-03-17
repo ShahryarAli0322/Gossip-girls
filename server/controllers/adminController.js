@@ -8,21 +8,24 @@ const JWT_SECRET = process.env.JWT_SECRET || "gossip-girl-secret-key"
 const JWT_EXPIRY = "7d"
 
 // Email transporter configuration
+const EMAIL_USER = process.env.EMAIL_USER || "zaraconnecthere@gmail.com"
+const EMAIL_PASS = process.env.EMAIL_PASS
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "zaraconnecthere@gmail.com",
-    pass: process.env.EMAIL_PASS
+    user: EMAIL_USER,
+    pass: EMAIL_PASS
   }
 })
 
 // Verify transporter configuration
-if (!process.env.EMAIL_PASS) {
+if (!EMAIL_PASS) {
   console.warn("⚠️  WARNING: EMAIL_PASS not set in .env file. Emails will not be sent!")
   console.warn("⚠️  To fix: Add EMAIL_PASS=your_gmail_app_password to your .env file")
 }
 
-const SENDER_EMAIL = "zaraconnecthere@gmail.com"
+const SENDER_EMAIL = EMAIL_USER
 
 // Admin Signup (max 2 admins)
 const signup = async (req, res) => {
@@ -83,28 +86,31 @@ const signup = async (req, res) => {
     // Send verification email
     const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin.html?token=${verificationToken}`
     
+    // Send verification email (non-blocking)
     try {
-      console.log("Attempting to send verification email to:", email)
-      console.log("Email password configured:", process.env.EMAIL_PASS ? "Yes" : "No")
-      
-      const mailOptions = {
-        from: SENDER_EMAIL,
-        to: email,
-        subject: "Gossip Girl Admin - Verify Your Email",
-        html: `
-          <p>Hi, ${name},</p>
-          <p>Please verify your email by clicking the link below:</p>
-          <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
-          <p>Thank you!</p>
-        `
+      if (!EMAIL_PASS) {
+        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
+      } else {
+        console.log("📧 Attempting to send verification email to:", email)
+        
+        await transporter.sendMail({
+          from: SENDER_EMAIL,
+          to: email,
+          subject: "Gossip Girl Admin - Verify Your Email",
+          html: `
+            <h2>Gossip Girl 💋</h2>
+            <p>Hi, ${name},</p>
+            <p>Please verify your email by clicking the link below:</p>
+            <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
+            <p>Thank you!</p>
+          `
+        })
+        
+        console.log("✅ Verification email sent successfully")
       }
-      
-      const info = await transporter.sendMail(mailOptions)
-      console.log("Verification email sent successfully:", info.messageId)
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError.message)
-      console.error("Full error:", emailError)
-      // Continue even if email fails - admin can still verify via direct link
+    } catch (err) {
+      console.error("❌ Email failed:", err.message)
+      // DO NOT block signup if email fails - admin can still verify via direct link
     }
     
     // Return success message with admin (without password)
@@ -150,7 +156,7 @@ const signup = async (req, res) => {
 // Admin Login
 const login = async (req, res) => {
   try {
-    console.log("Login request received:", { email: req.body.email })
+    console.log("Login attempt:", req.body.email)
     const { email, password } = req.body
     
     if (!email || !password) {
