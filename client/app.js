@@ -11,12 +11,16 @@ console.log("🔧 API Configuration:", {
   window_SOCKET_URL: window.SOCKET_URL
 })
 
-// Verify URL is correct
-if (!API_BASE_URL || API_BASE_URL.includes('your-backend-url')) {
+// Verify URL is correct - Force fix if placeholder detected
+if (!API_BASE_URL || API_BASE_URL.includes('your-backend-url') || API_BASE_URL === 'https://your-backend-url.onrender.com') {
   console.error('❌ ERROR: API_BASE_URL is not set correctly!', API_BASE_URL);
-  // Force set it
-  window.API_BASE_URL = 'https://gossip-girls.onrender.com';
-  window.SOCKET_URL = 'https://gossip-girls.onrender.com';
+  // Force set it immediately
+  const correctURL = 'https://gossip-girls.onrender.com';
+  window.API_BASE_URL = correctURL;
+  window.SOCKET_URL = correctURL;
+  // Update the constant
+  const API_BASE_URL = correctURL;
+  const SOCKET_URL = correctURL;
   console.log('✅ Fixed: API_BASE_URL set to', window.API_BASE_URL);
 }
 
