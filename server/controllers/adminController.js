@@ -11,6 +11,12 @@ const JWT_EXPIRY = "7d"
 const EMAIL_USER = process.env.EMAIL_USER || "zaraconnecthere@gmail.com"
 const EMAIL_PASS = process.env.EMAIL_PASS
 
+// Log email configuration
+console.log("📧 Email Configuration:")
+console.log("  EMAIL_USER:", EMAIL_USER)
+console.log("  EMAIL_USER from env:", process.env.EMAIL_USER || "(not set, using default)")
+console.log("  EMAIL_PASS:", EMAIL_PASS ? "✅ Set" : "❌ Not set")
+
 // Create transporter (will attempt to send even if EMAIL_PASS might be missing - errors will be caught)
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -29,6 +35,7 @@ if (!EMAIL_PASS) {
 }
 
 const SENDER_EMAIL = EMAIL_USER
+console.log("  SENDER_EMAIL:", SENDER_EMAIL)
 
 // Admin Signup (max 2 admins)
 const signup = async (req, res) => {
