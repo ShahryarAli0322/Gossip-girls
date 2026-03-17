@@ -45,6 +45,7 @@ const io = new Server(server,{
 
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 /* ROOT ROUTE - Must be before static file serving */
 app.get("/",(req,res)=>{

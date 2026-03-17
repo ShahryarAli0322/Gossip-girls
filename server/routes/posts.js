@@ -34,7 +34,12 @@ const calculateHotScore = (post) => {
 // GET all posts (sorted by admin blast, pinned, hot score, then date)
 router.get("/", async (req, res) => {
   try {
-    let posts = await Post.find()
+    let posts = await Post.find().sort({ createdAt: -1 })
+    
+    // Ensure posts is an array
+    if (!Array.isArray(posts)) {
+      posts = []
+    }
     
     // Calculate and update hot scores
     for (let post of posts) {
@@ -52,9 +57,10 @@ router.get("/", async (req, res) => {
       return new Date(b.createdAt) - new Date(a.createdAt)
     })
     
-    res.json(posts)
+    res.json(posts || [])
   } catch (err) {
-    res.status(500).json({ error: "Server error" })
+    console.error("GET ERROR:", err)
+    res.status(500).json([]) // ALWAYS return array
   }
 })
 
@@ -62,7 +68,12 @@ router.get("/", async (req, res) => {
 router.get("/campus/:campus", async (req, res) => {
   try {
     const { campus } = req.params
-    let posts = await Post.find({ campus })
+    let posts = await Post.find({ campus }).sort({ createdAt: -1 })
+    
+    // Ensure posts is an array
+    if (!Array.isArray(posts)) {
+      posts = []
+    }
     
     // Calculate hot scores
     for (let post of posts) {
@@ -80,16 +91,22 @@ router.get("/campus/:campus", async (req, res) => {
       return new Date(b.createdAt) - new Date(a.createdAt)
     })
     
-    res.json(posts)
+    res.json(posts || [])
   } catch (err) {
-    res.status(500).json({ error: "Server error" })
+    console.error("GET ERROR:", err)
+    res.status(500).json([]) // ALWAYS return array
   }
 })
 
 // GET hot posts
 router.get("/hot", async (req, res) => {
   try {
-    let posts = await Post.find()
+    let posts = await Post.find().sort({ createdAt: -1 })
+    
+    // Ensure posts is an array
+    if (!Array.isArray(posts)) {
+      posts = []
+    }
     
     // Calculate hot scores
     for (let post of posts) {
@@ -100,15 +117,17 @@ router.get("/hot", async (req, res) => {
     // Sort by hot score
     posts = posts.sort((a, b) => b.hotScore - a.hotScore)
     
-    res.json(posts.slice(0, 20)) // Top 20
+    res.json((posts || []).slice(0, 20)) // Top 20
   } catch (err) {
-    res.status(500).json({ error: "Server error" })
+    console.error("GET ERROR:", err)
+    res.status(500).json([]) // ALWAYS return array
   }
 })
 
 // CREATE post (with spam filter)
 router.post("/", spamFilter, upload.single("image"), async (req, res) => {
   try {
+    console.log("Incoming POST:", req.body)
     console.log("📥 POST /api/posts - Request received")
     console.log("  Body:", req.body)
     console.log("  File:", req.file ? {
@@ -119,12 +138,18 @@ router.post("/", spamFilter, upload.single("image"), async (req, res) => {
       mimetype: req.file.mimetype
     } : "No file uploaded")
     
+    // Validate required fields
+    if (!req.body.text) {
+      return res.status(400).json({ error: "Text is required" })
+    }
+    
     const post = new Post({
       campus: req.body.campus,
       text: req.body.text,
       category: req.body.category,
       author: req.body.author,
-      image: req.file ? "/uploads/" + req.file.filename : null
+      // Temporary fix: Render does NOT persist uploads folder
+      image: null // req.file ? "/uploads/" + req.file.filename : null
     })
     
     console.log("  Post image field:", post.image)
@@ -142,8 +167,11 @@ router.post("/", spamFilter, upload.single("image"), async (req, res) => {
     
     res.json(post)
   } catch (err) {
-    console.log(err)
-    res.status(500).json({ error: "Failed to create post" })
+    console.error("POST ERROR:", err)
+    res.status(500).json({
+      error: "Failed to create post",
+      details: err.message
+    })
   }
 })
 
