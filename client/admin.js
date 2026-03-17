@@ -112,19 +112,32 @@ async function apiCall(endpoint, options = {}) {
   }
   
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const url = `${API_BASE}${endpoint}`
+    console.log(`📡 API Call: ${url}`, { 
+      method: options.method || "GET", 
+      headers,
+      body: options.body ? JSON.parse(options.body) : undefined
+    })
+    
+    const response = await fetch(url, {
       ...options,
       headers
     })
     
+    console.log(`📥 Response status: ${response.status} ${response.statusText}`)
+    
     const data = await response.json()
+    console.log("📥 Response data:", data)
     
     if (!response.ok) {
-      throw new Error(data.error || "Request failed")
+      const errorMsg = data.error || data.message || "Request failed"
+      const errorDetails = data.details ? ` - ${data.details}` : ""
+      throw new Error(`${errorMsg}${errorDetails}`)
     }
     
     return data
   } catch (error) {
+    console.error("❌ API Call error:", error)
     throw error
   }
 }
