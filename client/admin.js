@@ -2,15 +2,15 @@
 
 // API Configuration - Backend URL
 // Use global CORRECT_BACKEND_URL from config.js (loaded before this file)
-// DO NOT redeclare - use window.CORRECT_BACKEND_URL directly
-const CORRECT_BACKEND_URL = window.CORRECT_BACKEND_URL || 'https://gossip-girls.onrender.com';
-let API_BASE_URL = window.API_BASE_URL || CORRECT_BACKEND_URL;
+// DO NOT redeclare const - use window.CORRECT_BACKEND_URL directly
+let API_BASE_URL = window.API_BASE_URL || window.CORRECT_BACKEND_URL || 'https://gossip-girls.onrender.com';
 
 // Force fix if placeholder detected
 if (API_BASE_URL.includes('your-backend-url') || !API_BASE_URL || API_BASE_URL === 'undefined') {
-  API_BASE_URL = window.CORRECT_BACKEND_URL || CORRECT_BACKEND_URL;
-  window.API_BASE_URL = window.CORRECT_BACKEND_URL || CORRECT_BACKEND_URL;
-  window.SOCKET_URL = window.CORRECT_BACKEND_URL || CORRECT_BACKEND_URL;
+  const correctUrl = window.CORRECT_BACKEND_URL || 'https://gossip-girls.onrender.com';
+  API_BASE_URL = correctUrl;
+  window.API_BASE_URL = correctUrl;
+  window.SOCKET_URL = correctUrl;
   console.warn('⚠️ Fixed placeholder URL in admin.js');
 }
 
