@@ -260,27 +260,31 @@ const resendVerificationEmail = async (req, res) => {
     // Send verification email
     const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin.html?token=${verificationToken}`
     
+    // Send verification email (non-blocking)
     try {
-      console.log("Attempting to resend verification email to:", email)
-      console.log("Email password configured:", process.env.EMAIL_PASS ? "Yes" : "No")
-      
-      const mailOptions = {
-        from: SENDER_EMAIL,
-        to: email,
-        subject: "Gossip Girl Admin - Verify Your Email",
-        html: `
-          <p>Hi, ${admin.name},</p>
-          <p>Please verify your email by clicking the link below:</p>
-          <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
-          <p>Thank you!</p>
-        `
+      if (!EMAIL_PASS) {
+        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
+      } else {
+        console.log("📧 Attempting to resend verification email to:", email)
+        
+        await transporter.sendMail({
+          from: SENDER_EMAIL,
+          to: email,
+          subject: "Gossip Girl Admin - Verify Your Email",
+          html: `
+            <h2>Gossip Girl 💋</h2>
+            <p>Hi, ${admin.name},</p>
+            <p>Please verify your email by clicking the link below:</p>
+            <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
+            <p>Thank you!</p>
+          `
+        })
+        
+        console.log("✅ Verification email resent successfully")
       }
-      
-      const info = await transporter.sendMail(mailOptions)
-      console.log("Verification email resent successfully:", info.messageId)
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError.message)
-      console.error("Full error:", emailError)
+    } catch (err) {
+      console.error("❌ Email failed:", err.message)
+      // DO NOT block resend if email fails
     }
     
     res.json({ message: "If email exists, verification email has been sent" })
@@ -311,27 +315,32 @@ const forgotPassword = async (req, res) => {
     // Send email
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin/reset-password/${resetToken}`
     
+    // Send reset email (non-blocking)
     try {
-      console.log("Attempting to send password reset email to:", email)
-      console.log("Email password configured:", process.env.EMAIL_PASS ? "Yes" : "No")
-      
-      const mailOptions = {
-        from: SENDER_EMAIL,
-        to: email,
-        subject: "Gossip Girl Admin - Password Reset",
-        html: `
-          <p>Hi, ${admin.name},</p>
-          <p>You requested to reset your password. Click the link below to reset it:</p>
-          <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
-          <p>Note: This link will expire in 10 minutes.</p>
-        `
+      if (!EMAIL_PASS) {
+        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
+      } else {
+        console.log("📧 Attempting to send reset password email to:", email)
+        
+        await transporter.sendMail({
+          from: SENDER_EMAIL,
+          to: email,
+          subject: "Gossip Girl Admin - Reset Your Password",
+          html: `
+            <h2>Gossip Girl 💋</h2>
+            <p>Hi, ${admin.name},</p>
+            <p>Click below to reset your password:</p>
+            <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+            <p>This link expires in 10 minutes.</p>
+            <p>Thank you!</p>
+          `
+        })
+        
+        console.log("✅ Reset password email sent successfully")
       }
-      
-      const info = await transporter.sendMail(mailOptions)
-      console.log("Password reset email sent successfully:", info.messageId)
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError.message)
-      console.error("Full error:", emailError)
+    } catch (err) {
+      console.error("❌ Email failed:", err.message)
+      // DO NOT block forgot password if email fails
     }
     
     res.json({ message: "If email exists, reset link has been sent" })
@@ -362,27 +371,32 @@ const resendResetPassword = async (req, res) => {
     // Send email
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin/reset-password/${resetToken}`
     
+    // Send reset email (non-blocking)
     try {
-      console.log("Attempting to resend password reset email to:", email)
-      console.log("Email password configured:", process.env.EMAIL_PASS ? "Yes" : "No")
-      
-      const mailOptions = {
-        from: SENDER_EMAIL,
-        to: email,
-        subject: "Gossip Girl Admin - Password Reset",
-        html: `
-          <p>Hi, ${admin.name},</p>
-          <p>You requested to reset your password. Click the link below to reset it:</p>
-          <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
-          <p>Note: This link will expire in 10 minutes.</p>
-        `
+      if (!EMAIL_PASS) {
+        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
+      } else {
+        console.log("📧 Attempting to resend reset password email to:", email)
+        
+        await transporter.sendMail({
+          from: SENDER_EMAIL,
+          to: email,
+          subject: "Gossip Girl Admin - Reset Your Password",
+          html: `
+            <h2>Gossip Girl 💋</h2>
+            <p>Hi, ${admin.name},</p>
+            <p>Click below to reset your password:</p>
+            <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+            <p>This link expires in 10 minutes.</p>
+            <p>Thank you!</p>
+          `
+        })
+        
+        console.log("✅ Reset password email resent successfully")
       }
-      
-      const info = await transporter.sendMail(mailOptions)
-      console.log("Password reset email resent successfully:", info.messageId)
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError.message)
-      console.error("Full error:", emailError)
+    } catch (err) {
+      console.error("❌ Email failed:", err.message)
+      // DO NOT block resend if email fails
     }
     
     res.json({ message: "If email exists, reset link has been sent" })
