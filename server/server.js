@@ -23,9 +23,34 @@ const server = http.createServer(app)
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000"
 const PORT = process.env.PORT || 5000
 
+// CORS configuration - allow Vercel deployments
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    
+    // Allow the configured CLIENT_URL
+    if (origin === CLIENT_URL) {
+      return callback(null, true)
+    }
+    
+    // Allow Vercel preview deployments (if CLIENT_URL is a Vercel domain)
+    if (CLIENT_URL.includes('vercel.app') && origin.includes('vercel.app')) {
+      return callback(null, true)
+    }
+    
+    // Log blocked origins for debugging
+    console.log('CORS: Blocked origin:', origin, 'Expected:', CLIENT_URL)
+    callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}
+
 const io = new Server(server,{
 cors:{
-origin: CLIENT_URL,
+origin: CLIENT_URL.includes('vercel.app') ? /\.vercel\.app$/ : CLIENT_URL,
 methods:["GET","POST"],
 credentials:true
 }
@@ -33,10 +58,7 @@ credentials:true
 
 /* MIDDLEWARE */
 
-app.use(cors({
-origin: CLIENT_URL,
-credentials:true
-}))
+app.use(cors(corsOptions))
 app.use(express.json())
 
 /* ROOT ROUTE - Must be before static file serving */
