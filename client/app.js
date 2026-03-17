@@ -1,8 +1,11 @@
-// API Configuration - Injected at build time via Vercel environment variables
-// Set API_BASE_URL and SOCKET_URL in Vercel dashboard
-// Fallback to placeholder if not set (will be replaced during build)
-const API_BASE_URL = window.API_BASE_URL || "%VITE_API_BASE_URL%" || "https://your-backend-url.onrender.com"
-const SOCKET_URL = window.SOCKET_URL || "%VITE_SOCKET_URL%" || API_BASE_URL
+// API Configuration - Set via window variables (injected in index.html)
+// IMPORTANT: Set API_BASE_URL in Vercel environment variables
+// The value will be injected via meta tag or build script
+const API_BASE_URL = window.API_BASE_URL || "https://your-backend-url.onrender.com"
+const SOCKET_URL = window.SOCKET_URL || API_BASE_URL
+
+// Log for debugging
+console.log("🔧 API Configuration:", { API_BASE_URL, SOCKET_URL })
 
 // Initialize Socket.IO connection
 const socket = typeof io !== "undefined" ? io(SOCKET_URL, {

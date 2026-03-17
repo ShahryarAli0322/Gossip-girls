@@ -16,6 +16,7 @@ const SOCKET_URL = process.env.SOCKET_URL || process.env.NEXT_PUBLIC_SOCKET_URL 
 const filesToProcess = [
   'client/index.html',
   'client/admin.html',
+  'client/config.js',
   'client/app.js',
   'client/admin.js'
 ];

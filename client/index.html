@@ -1487,10 +1487,28 @@ Spotted: secrets across BMI, LGS, and ROOTS that refuse to stay quiet.
 
 <script>
 // Inject environment variables from Vercel
-// These are set at build time via Vercel environment variables
-// The build script replaces %VITE_API_BASE_URL% and %VITE_SOCKET_URL% with actual values
-window.API_BASE_URL = window.API_BASE_URL || '%VITE_API_BASE_URL%' || 'https://your-backend-url.onrender.com';
-window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_URL;
+// Vercel automatically exposes environment variables as window.__ENV__
+// Or we can use a meta tag approach
+(function() {
+  // Try to get from meta tag (set by Vercel build)
+  const apiMeta = document.querySelector('meta[name="api-base-url"]');
+  const socketMeta = document.querySelector('meta[name="socket-url"]');
+  
+  if (apiMeta) {
+    window.API_BASE_URL = apiMeta.getAttribute('content');
+  }
+  if (socketMeta) {
+    window.SOCKET_URL = socketMeta.getAttribute('content');
+  }
+  
+  // Fallback to environment variable or default
+  window.API_BASE_URL = window.API_BASE_URL || '%VITE_API_BASE_URL%' || 'https://your-backend-url.onrender.com';
+  window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_URL;
+  
+  // Log for debugging
+  console.log('API_BASE_URL:', window.API_BASE_URL);
+  console.log('SOCKET_URL:', window.SOCKET_URL);
+})();
 
 // Dynamically load Socket.IO from backend URL
 (function() {
@@ -1513,6 +1531,7 @@ window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_
   document.head.appendChild(script);
 })();
 </script>
+<script src="config.js"></script>
 <script src="app.js"></script>
 
 </body>

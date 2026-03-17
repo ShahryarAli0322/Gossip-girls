@@ -1083,6 +1083,13 @@
     </div>
   </div>
 
+  <script>
+    // Inject environment variables
+    window.API_BASE_URL = window.API_BASE_URL || '%VITE_API_BASE_URL%' || 'https://your-backend-url.onrender.com';
+    window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_URL;
+    console.log('📡 Admin API Configuration:', { API_BASE_URL: window.API_BASE_URL });
+  </script>
+  <script src="config.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
