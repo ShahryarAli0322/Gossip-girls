@@ -39,9 +39,10 @@ credentials:true
 }))
 app.use(express.json())
 
-/* SERVE FRONTEND */
-
-app.use(express.static(path.join(__dirname,"../client")))
+/* ROOT ROUTE - Must be before static file serving */
+app.get("/",(req,res)=>{
+res.json({message:"Gossip Girl API is running...",status:"ok"})
+})
 
 /* SERVE UPLOADS */
 
@@ -177,11 +178,6 @@ socket.on("disconnect",()=>{
 console.log("User disconnected:",socket.id)
 })
 
-})
-
-/* ROOT ROUTE */
-app.get("/",(req,res)=>{
-res.json({message:"Gossip Girl API is running...",status:"ok"})
 })
 
 /* START SERVER */
