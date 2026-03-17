@@ -27,23 +27,30 @@ const SENDER_EMAIL = "zaraconnecthere@gmail.com"
 // Admin Signup (max 2 admins)
 const signup = async (req, res) => {
   try {
-    console.log("Signup request received:", { name: req.body.name, email: req.body.email, phone: req.body.phone })
+    console.log("Signup request:", req.body)
     const { name, email, phone, password } = req.body
     
+    // Validate input
     if (!name || !email || !phone || !password) {
-      return res.status(400).json({ error: "All fields are required" })
+      return res.status(400).json({
+        error: "All fields are required"
+      })
     }
     
     // Check admin limit
-    const adminCount = await Admin.countDocuments()
-    if (adminCount >= 2) {
-      return res.status(400).json({ error: "Admin limit reached" })
+    const count = await Admin.countDocuments()
+    if (count >= 2) {
+      return res.status(400).json({
+        error: "Admin limit reached (max 2)"
+      })
     }
     
-    // Check if email already exists
-    const existingAdmin = await Admin.findOne({ email })
-    if (existingAdmin) {
-      return res.status(400).json({ error: "Email already registered" })
+    // Check duplicate email
+    const existing = await Admin.findOne({ email })
+    if (existing) {
+      return res.status(400).json({
+        error: "Email already exists"
+      })
     }
     
     // Generate verification token
@@ -88,21 +95,43 @@ const signup = async (req, res) => {
       // Continue even if email fails - admin can still verify via direct link
     }
     
+    // Return success message with admin (without password)
+    const adminResponse = {
+      _id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      phone: admin.phone,
+      isVerified: admin.isVerified,
+      createdAt: admin.createdAt
+    }
+    
     res.json({
-      message: "Verification email sent. Please check your email to complete signup.",
+      message: "Admin created successfully",
+      admin: adminResponse,
       requiresVerification: true,
       email: email
     })
-  } catch (error) {
-    console.error("Signup error:", error)
+  } catch (err) {
+    console.error("Signup error:", err)
+    
     // Return more specific error messages
-    if (error.code === 11000) {
-      return res.status(400).json({ error: "Email already registered" })
+    if (err.code === 11000) {
+      return res.status(400).json({ 
+        error: "Email already exists",
+        details: err.message
+      })
     }
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ error: Object.values(error.errors).map(e => e.message).join(", ") })
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ 
+        error: Object.values(err.errors).map(e => e.message).join(", "),
+        details: err.message
+      })
     }
-    res.status(500).json({ error: error.message || "Signup failed" })
+    
+    res.status(500).json({
+      error: "Signup failed",
+      details: err.message
+    })
   }
 }
 
