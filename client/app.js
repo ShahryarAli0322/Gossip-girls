@@ -8,7 +8,7 @@ let SOCKET_URL = window.SOCKET_URL || CORRECT_BACKEND_URL;
 
 // FORCE FIX: Replace any placeholder immediately
 if (API_BASE_URL.includes('your-backend-url') || 
-    API_BASE_URL === 'https://your-backend-url.onrender.com' ||
+    API_BASE_URL === 'https://gossip-girls.onrender.com' ||
     !API_BASE_URL || 
     API_BASE_URL === 'undefined') {
   console.warn('⚠️ Placeholder URL detected! Fixing...', API_BASE_URL);
