@@ -1486,10 +1486,14 @@ Spotted: secrets across BMI, LGS, and ROOTS that refuse to stay quiet.
 </div>
 
 <script>
-// Set backend URL immediately - this runs before config.js
-// config.js will override if needed, but this ensures it's set
-window.API_BASE_URL = 'https://gossip-girls.onrender.com';
-window.SOCKET_URL = 'https://gossip-girls.onrender.com';
+// CRITICAL: Set backend URL immediately - MUST be set before any other scripts
+// This ensures API calls work even if config.js fails to load
+(function() {
+  'use strict';
+  window.API_BASE_URL = 'https://gossip-girls.onrender.com';
+  window.SOCKET_URL = 'https://gossip-girls.onrender.com';
+  console.log('✅ Backend URL set:', window.API_BASE_URL);
+})();
 
 // Dynamically load Socket.IO from backend URL
 (function() {

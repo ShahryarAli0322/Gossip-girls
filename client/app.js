@@ -1,10 +1,24 @@
 // API Configuration - Backend URL
-// Set from window.API_BASE_URL (defined in config.js) or use direct URL
+// MUST use window.API_BASE_URL which is set in index.html before this script loads
 const API_BASE_URL = window.API_BASE_URL || "https://gossip-girls.onrender.com"
 const SOCKET_URL = window.SOCKET_URL || "https://gossip-girls.onrender.com"
 
-// Log for debugging
-console.log("🔧 API Configuration:", { API_BASE_URL, SOCKET_URL })
+// Log for debugging - check this in console
+console.log("🔧 API Configuration:", { 
+  API_BASE_URL, 
+  SOCKET_URL,
+  window_API_BASE_URL: window.API_BASE_URL,
+  window_SOCKET_URL: window.SOCKET_URL
+})
+
+// Verify URL is correct
+if (!API_BASE_URL || API_BASE_URL.includes('your-backend-url')) {
+  console.error('❌ ERROR: API_BASE_URL is not set correctly!', API_BASE_URL);
+  // Force set it
+  window.API_BASE_URL = 'https://gossip-girls.onrender.com';
+  window.SOCKET_URL = 'https://gossip-girls.onrender.com';
+  console.log('✅ Fixed: API_BASE_URL set to', window.API_BASE_URL);
+}
 
 // Initialize Socket.IO connection
 const socket = typeof io !== "undefined" ? io(SOCKET_URL, {
@@ -449,7 +463,19 @@ console.log(`  ${pair[0]}: "${pair[1]}"`)
 }
 
 // Submit post
-console.log("📤 Submitting POST request to /api/posts...")
+console.log("📤 Submitting POST request to:", `${API_BASE_URL}/api/posts`)
+console.log("🔧 Using API_BASE_URL:", API_BASE_URL)
+
+// Test backend connection first
+try {
+  const testResponse = await fetch(`${API_BASE_URL}/`, { method: 'GET' })
+  console.log("✅ Backend connection test:", testResponse.status, await testResponse.text())
+} catch (testError) {
+  console.error("❌ Backend connection failed:", testError)
+  alert("Cannot connect to backend. Please check if the backend is running at: " + API_BASE_URL)
+  throw testError
+}
+
 const response=await fetch(`${API_BASE_URL}/api/posts`,{
 method:"POST",
 body:formData
