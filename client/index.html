@@ -1486,11 +1486,15 @@ Spotted: secrets across BMI, LGS, and ROOTS that refuse to stay quiet.
 </div>
 
 <script>
+// Inject environment variables from Vercel
+// These are set at build time via Vercel environment variables
+// The build script replaces %VITE_API_BASE_URL% and %VITE_SOCKET_URL% with actual values
+window.API_BASE_URL = window.API_BASE_URL || '%VITE_API_BASE_URL%' || 'https://your-backend-url.onrender.com';
+window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_URL;
+
 // Dynamically load Socket.IO from backend URL
-// Update API_BASE_URL with your actual backend URL after deployment
 (function() {
-  // Try to get from environment variable or use default
-  const API_BASE_URL = window.API_BASE_URL || "https://your-backend-url.onrender.com";
+  const API_BASE_URL = window.API_BASE_URL;
   const script = document.createElement('script');
   script.src = `${API_BASE_URL}/socket.io/socket.io.js`;
   script.onerror = function() {

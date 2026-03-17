@@ -1,9 +1,9 @@
 // Admin Panel Frontend Logic
 
-// API Configuration - Update this with your backend URL after deployment
-// For Vercel: Set API_BASE_URL as environment variable in Vercel dashboard
-// Or update the URL below directly
-const API_BASE_URL = window.API_BASE_URL || "https://your-backend-url.onrender.com"
+// API Configuration - Injected at build time via Vercel environment variables
+// Set API_BASE_URL in Vercel dashboard
+// Fallback to placeholder if not set (will be replaced during build)
+const API_BASE_URL = window.API_BASE_URL || "%VITE_API_BASE_URL%" || "https://your-backend-url.onrender.com"
 const API_BASE = `${API_BASE_URL}/api/admin`
 let authToken = localStorage.getItem("adminToken")
 let currentSection = "analytics"
