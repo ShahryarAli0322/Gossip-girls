@@ -34,23 +34,23 @@ const corsOptions = {
       return callback(null, true)
     }
     
-    // Allow Vercel preview deployments (if CLIENT_URL is a Vercel domain)
-    if (CLIENT_URL.includes('vercel.app') && origin.includes('vercel.app')) {
+    // Allow all Vercel deployments (preview and production)
+    if (origin.includes('vercel.app')) {
       return callback(null, true)
     }
     
-    // Log blocked origins for debugging
-    console.log('CORS: Blocked origin:', origin, 'Expected:', CLIENT_URL)
-    callback(new Error('Not allowed by CORS'))
+    // Log for debugging
+    console.log('CORS: Allowing origin:', origin)
+    callback(null, true) // Allow all for now - can restrict later
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"]
 }
 
 const io = new Server(server,{
 cors:{
-origin: CLIENT_URL.includes('vercel.app') ? /\.vercel\.app$/ : CLIENT_URL,
+origin: true, // Allow all origins for Socket.IO
 methods:["GET","POST"],
 credentials:true
 }
