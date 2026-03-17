@@ -1486,29 +1486,10 @@ Spotted: secrets across BMI, LGS, and ROOTS that refuse to stay quiet.
 </div>
 
 <script>
-// Inject environment variables from Vercel
-// Vercel automatically exposes environment variables as window.__ENV__
-// Or we can use a meta tag approach
-(function() {
-  // Try to get from meta tag (set by Vercel build)
-  const apiMeta = document.querySelector('meta[name="api-base-url"]');
-  const socketMeta = document.querySelector('meta[name="socket-url"]');
-  
-  if (apiMeta) {
-    window.API_BASE_URL = apiMeta.getAttribute('content');
-  }
-  if (socketMeta) {
-    window.SOCKET_URL = socketMeta.getAttribute('content');
-  }
-  
-  // Fallback to environment variable or default
-  window.API_BASE_URL = window.API_BASE_URL || '%VITE_API_BASE_URL%' || 'https://gossip-girls.onrender.com';
-  window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_URL;
-  
-  // Log for debugging
-  console.log('API_BASE_URL:', window.API_BASE_URL);
-  console.log('SOCKET_URL:', window.SOCKET_URL);
-})();
+// Set backend URL immediately - this runs before config.js
+// config.js will override if needed, but this ensures it's set
+window.API_BASE_URL = 'https://gossip-girls.onrender.com';
+window.SOCKET_URL = 'https://gossip-girls.onrender.com';
 
 // Dynamically load Socket.IO from backend URL
 (function() {

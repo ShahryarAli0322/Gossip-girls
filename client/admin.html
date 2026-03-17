@@ -1084,9 +1084,13 @@
   </div>
 
   <script>
-    // Inject environment variables
-    window.API_BASE_URL = window.API_BASE_URL || '%VITE_API_BASE_URL%' || 'https://gossip-girls.onrender.com';
-    window.SOCKET_URL = window.SOCKET_URL || '%VITE_SOCKET_URL%' || window.API_BASE_URL;
+    // Set backend URL directly
+    if (!window.API_BASE_URL) {
+      window.API_BASE_URL = 'https://gossip-girls.onrender.com';
+    }
+    if (!window.SOCKET_URL) {
+      window.SOCKET_URL = 'https://gossip-girls.onrender.com';
+    }
     console.log('📡 Admin API Configuration:', { API_BASE_URL: window.API_BASE_URL });
   </script>
   <script src="config.js"></script>

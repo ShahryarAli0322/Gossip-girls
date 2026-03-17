@@ -1,8 +1,7 @@
-// API Configuration - Set via window variables (injected in index.html)
-// IMPORTANT: Set API_BASE_URL in Vercel environment variables
-// The value will be injected via meta tag or build script
+// API Configuration - Backend URL
+// Set from window.API_BASE_URL (defined in config.js) or use direct URL
 const API_BASE_URL = window.API_BASE_URL || "https://gossip-girls.onrender.com"
-const SOCKET_URL = window.SOCKET_URL || API_BASE_URL
+const SOCKET_URL = window.SOCKET_URL || "https://gossip-girls.onrender.com"
 
 // Log for debugging
 console.log("🔧 API Configuration:", { API_BASE_URL, SOCKET_URL })
