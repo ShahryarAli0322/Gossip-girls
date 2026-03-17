@@ -1,17 +1,17 @@
 const express = require("express")
 const router = express.Router()
 const multer = require("multer")
-const path = require("path")
+const { CloudinaryStorage } = require("multer-storage-cloudinary")
+const cloudinary = require("../config/cloudinary")
 const Post = require("../models/Post")
 const spamFilter = require("../middleware/spamFilter")
 
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/")
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname)
+// Multer configuration with Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "gossip-posts",
+    allowed_formats: ["jpg", "png", "jpeg", "gif", "webp"]
   }
 })
 
@@ -148,10 +148,10 @@ router.post("/", spamFilter, upload.single("image"), async (req, res) => {
       text: req.body.text,
       category: req.body.category,
       author: req.body.author,
-      // Temporary fix: Render does NOT persist uploads folder
-      image: null // req.file ? "/uploads/" + req.file.filename : null
+      image: req.file ? req.file.path : null
     })
     
+    console.log("Uploaded image:", req.file)
     console.log("  Post image field:", post.image)
     
     await post.save()
