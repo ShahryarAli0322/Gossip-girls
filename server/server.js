@@ -23,6 +23,12 @@ const server = http.createServer(app)
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000"
 const PORT = process.env.PORT || 5000
 
+// Validate required environment variables
+if (!process.env.MONGO_URI) {
+  console.error("❌ MONGO_URI missing - Cannot start server without database")
+  process.exit(1)
+}
+
 // CORS configuration - allow Vercel deployments
 const corsOptions = {
   origin: [
@@ -74,10 +80,38 @@ const upload = multer({storage})
 
 /* MONGODB CONNECTION */
 
-mongoose.connect(process.env.MONGO_URI)
+// Connection event handlers
+mongoose.connection.on("connected", () => {
+  console.log("📡 Mongoose connected to DB")
+})
 
-.then(()=>console.log("MongoDB Atlas Connected"))
-.catch(err=>console.log(err))
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Mongoose error:", err)
+})
+
+mongoose.connection.on("disconnected", () => {
+  console.log("⚠️ Mongoose disconnected from DB")
+})
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000
+})
+.then(() => {
+  console.log("✅ MongoDB Atlas Connected")
+  
+  // Start server ONLY after DB connects
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`)
+    console.log(`🌐 CORS enabled for: ${CLIENT_URL}`)
+  })
+})
+.catch(err => {
+  console.error("❌ MongoDB Connection Error:", err.message)
+  console.error("Full error:", err)
+  process.exit(1) // Exit if DB connection fails
+})
 
 // Make io available to routes
 app.set("io", io)
@@ -189,8 +223,5 @@ console.log("User disconnected:",socket.id)
 })
 
 /* START SERVER */
-
-server.listen(PORT,()=>{
-console.log(`Server running on port ${PORT}`)
-console.log(`CORS enabled for: ${CLIENT_URL}`)
-})
+// Server now starts inside mongoose.connect().then() above
+// This ensures DB is connected before accepting requests
