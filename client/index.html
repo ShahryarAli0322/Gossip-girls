@@ -1490,9 +1490,20 @@ Spotted: secrets across BMI, LGS, and ROOTS that refuse to stay quiet.
 // This ensures API calls work even if config.js fails to load
 (function() {
   'use strict';
-  window.API_BASE_URL = 'https://gossip-girls.onrender.com';
-  window.SOCKET_URL = 'https://gossip-girls.onrender.com';
+  const CORRECT_URL = 'https://gossip-girls.onrender.com';
+  
+  // Force set correct URL, overriding any placeholder
+  window.API_BASE_URL = CORRECT_URL;
+  window.SOCKET_URL = CORRECT_URL;
+  
   console.log('✅ Backend URL set:', window.API_BASE_URL);
+  
+  // Double-check and fix if somehow placeholder got through
+  if (window.API_BASE_URL.includes('your-backend-url')) {
+    window.API_BASE_URL = CORRECT_URL;
+    window.SOCKET_URL = CORRECT_URL;
+    console.log('✅ Fixed placeholder URL');
+  }
 })();
 
 // Dynamically load Socket.IO from backend URL

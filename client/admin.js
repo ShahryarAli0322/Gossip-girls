@@ -1,8 +1,18 @@
 // Admin Panel Frontend Logic
 
 // API Configuration - Backend URL
-// Set from window.API_BASE_URL (defined in config.js) or use direct URL
-const API_BASE_URL = window.API_BASE_URL || "https://gossip-girls.onrender.com"
+// CRITICAL: Force correct URL, no placeholders
+const CORRECT_BACKEND_URL = 'https://gossip-girls.onrender.com';
+let API_BASE_URL = window.API_BASE_URL || CORRECT_BACKEND_URL;
+
+// Force fix if placeholder detected
+if (API_BASE_URL.includes('your-backend-url') || !API_BASE_URL || API_BASE_URL === 'undefined') {
+  API_BASE_URL = CORRECT_BACKEND_URL;
+  window.API_BASE_URL = CORRECT_BACKEND_URL;
+  window.SOCKET_URL = CORRECT_BACKEND_URL;
+  console.warn('⚠️ Fixed placeholder URL in admin.js');
+}
+
 const API_BASE = `${API_BASE_URL}/api/admin`
 let authToken = localStorage.getItem("adminToken")
 let currentSection = "analytics"

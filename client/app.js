@@ -1,28 +1,31 @@
 // API Configuration - Backend URL
-// MUST use window.API_BASE_URL which is set in index.html before this script loads
-const API_BASE_URL = window.API_BASE_URL || "https://gossip-girls.onrender.com"
-const SOCKET_URL = window.SOCKET_URL || "https://gossip-girls.onrender.com"
+// CRITICAL FIX: Force correct URL immediately, even if placeholder is present
+const CORRECT_BACKEND_URL = 'https://gossip-girls.onrender.com';
 
-// Log for debugging - check this in console
+// Get from window (set in index.html) or use correct URL
+let API_BASE_URL = window.API_BASE_URL || CORRECT_BACKEND_URL;
+let SOCKET_URL = window.SOCKET_URL || CORRECT_BACKEND_URL;
+
+// FORCE FIX: Replace any placeholder immediately
+if (API_BASE_URL.includes('your-backend-url') || 
+    API_BASE_URL === 'https://your-backend-url.onrender.com' ||
+    !API_BASE_URL || 
+    API_BASE_URL === 'undefined') {
+  console.warn('⚠️ Placeholder URL detected! Fixing...', API_BASE_URL);
+  API_BASE_URL = CORRECT_BACKEND_URL;
+  SOCKET_URL = CORRECT_BACKEND_URL;
+  window.API_BASE_URL = CORRECT_BACKEND_URL;
+  window.SOCKET_URL = CORRECT_BACKEND_URL;
+  console.log('✅ Fixed: API_BASE_URL set to', API_BASE_URL);
+}
+
+// Log for debugging
 console.log("🔧 API Configuration:", { 
   API_BASE_URL, 
   SOCKET_URL,
   window_API_BASE_URL: window.API_BASE_URL,
   window_SOCKET_URL: window.SOCKET_URL
 })
-
-// Verify URL is correct - Force fix if placeholder detected
-if (!API_BASE_URL || API_BASE_URL.includes('your-backend-url') || API_BASE_URL === 'https://your-backend-url.onrender.com') {
-  console.error('❌ ERROR: API_BASE_URL is not set correctly!', API_BASE_URL);
-  // Force set it immediately
-  const correctURL = 'https://gossip-girls.onrender.com';
-  window.API_BASE_URL = correctURL;
-  window.SOCKET_URL = correctURL;
-  // Update the constant
-  const API_BASE_URL = correctURL;
-  const SOCKET_URL = correctURL;
-  console.log('✅ Fixed: API_BASE_URL set to', window.API_BASE_URL);
-}
 
 // Initialize Socket.IO connection
 const socket = typeof io !== "undefined" ? io(SOCKET_URL, {
