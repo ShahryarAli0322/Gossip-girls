@@ -176,10 +176,13 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
   }
   
   try {
+    console.log("📤 Sending signup request:", { name, email, phone, passwordLength: password.length })
     const data = await apiCall("/signup", {
       method: "POST",
       body: JSON.stringify({ name, email, phone, password })
     })
+    
+    console.log("✅ Signup response:", data)
     
     if (data.requiresVerification) {
       showAlert("Verification email sent! Please check your email.", "success")
@@ -189,7 +192,9 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
       showLogin()
     }
   } catch (error) {
-    showAlert(error.message || "Signup failed", "error")
+    console.error("❌ Signup error:", error)
+    const errorMessage = error.message || "Signup failed"
+    showAlert(errorMessage, "error")
   }
 })
 

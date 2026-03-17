@@ -28,6 +28,18 @@ const SENDER_EMAIL = "zaraconnecthere@gmail.com"
 const signup = async (req, res) => {
   try {
     console.log("Signup request:", req.body)
+    console.log("Request headers:", req.headers)
+    console.log("Content-Type:", req.headers['content-type'])
+    
+    // Check if body is empty
+    if (!req.body || Object.keys(req.body).length === 0) {
+      console.error("❌ Empty request body received")
+      return res.status(400).json({
+        error: "Request body is empty",
+        details: "Please ensure Content-Type is application/json"
+      })
+    }
+    
     const { name, email, phone, password } = req.body
     
     // Validate input
