@@ -3,7 +3,7 @@
 // API Configuration - Injected at build time via Vercel environment variables
 // Set API_BASE_URL in Vercel dashboard
 // Fallback to placeholder if not set (will be replaced during build)
-const API_BASE_URL = window.API_BASE_URL || "%VITE_API_BASE_URL%" || "https://your-backend-url.onrender.com"
+const API_BASE_URL = window.API_BASE_URL || "%VITE_API_BASE_URL%" || "https://gossip-girls.onrender.com"
 const API_BASE = `${API_BASE_URL}/api/admin`
 let authToken = localStorage.getItem("adminToken")
 let currentSection = "analytics"
