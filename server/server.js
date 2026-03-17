@@ -36,9 +36,7 @@ const corsOptions = {
 
 const io = new Server(server,{
   cors: {
-    origin: [
-      "https://gossip-girls-omega.vercel.app"
-    ],
+    origin: "https://gossip-girls-omega.vercel.app",
     methods: ["GET", "POST"]
   }
 })

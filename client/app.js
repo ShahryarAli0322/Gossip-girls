@@ -2,6 +2,8 @@
 // CRITICAL: Use the real backend URL - NO PLACEHOLDERS
 const BASE_URL = "https://gossip-girls.onrender.com"
 
+console.log("Backend URL:", BASE_URL)
+
 // Force clear old service workers on load
 if("serviceWorker" in navigator){
   navigator.serviceWorker.getRegistrations().then(regs=>{
@@ -12,11 +14,8 @@ if("serviceWorker" in navigator){
   })
 }
 
-// Log for debugging
-console.log("🔧 Using backend:", BASE_URL)
-
 // Initialize Socket.IO connection
-const socket = typeof io !== "undefined" ? io(BASE_URL, {
+const socket = typeof io !== "undefined" ? io("https://gossip-girls.onrender.com", {
   transports: ["websocket", "polling"]
 }) : null
 
@@ -302,6 +301,7 @@ url = `${BASE_URL}/api/posts/hot`
 url = `${BASE_URL}/api/posts/campus/${filter}`
 }
 
+console.log("Fetching from:", url)
 const res = await fetch(url)
 
 posts = await res.json()
