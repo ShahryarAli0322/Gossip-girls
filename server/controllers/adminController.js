@@ -11,18 +11,21 @@ const JWT_EXPIRY = "7d"
 const EMAIL_USER = process.env.EMAIL_USER || "zaraconnecthere@gmail.com"
 const EMAIL_PASS = process.env.EMAIL_PASS
 
+// Create transporter (will attempt to send even if EMAIL_PASS might be missing - errors will be caught)
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: EMAIL_USER,
-    pass: EMAIL_PASS
+    pass: EMAIL_PASS || "" // Allow empty string, error will be caught when sending
   }
 })
 
-// Verify transporter configuration
+// Verify transporter configuration (warning only, don't block)
 if (!EMAIL_PASS) {
-  console.warn("⚠️  WARNING: EMAIL_PASS not set in .env file. Emails will not be sent!")
+  console.warn("⚠️  WARNING: EMAIL_PASS not set in .env file. Emails may fail to send!")
   console.warn("⚠️  To fix: Add EMAIL_PASS=your_gmail_app_password to your .env file")
+} else {
+  console.log("✅ Email configuration loaded (EMAIL_PASS is set)")
 }
 
 const SENDER_EMAIL = EMAIL_USER
@@ -86,30 +89,27 @@ const signup = async (req, res) => {
     // Send verification email
     const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin.html?token=${verificationToken}`
     
-    // Send verification email (non-blocking)
+    // Send verification email (non-blocking - always attempt, catch errors)
     try {
-      if (!EMAIL_PASS) {
-        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
-      } else {
-        console.log("📧 Attempting to send verification email to:", email)
-        
-        await transporter.sendMail({
-          from: SENDER_EMAIL,
-          to: email,
-          subject: "Gossip Girl Admin - Verify Your Email",
-          html: `
-            <h2>Gossip Girl 💋</h2>
-            <p>Hi, ${name},</p>
-            <p>Please verify your email by clicking the link below:</p>
-            <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
-            <p>Thank you!</p>
-          `
-        })
-        
-        console.log("✅ Verification email sent successfully")
-      }
+      console.log("📧 Attempting to send verification email to:", email)
+      
+      await transporter.sendMail({
+        from: SENDER_EMAIL,
+        to: email,
+        subject: "Gossip Girl Admin - Verify Your Email",
+        html: `
+          <h2>Gossip Girl 💋</h2>
+          <p>Hi, ${name},</p>
+          <p>Please verify your email by clicking the link below:</p>
+          <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
+          <p>Thank you!</p>
+        `
+      })
+      
+      console.log("✅ Verification email sent successfully")
     } catch (err) {
       console.error("❌ Email failed:", err.message)
+      console.error("Full error:", err)
       // DO NOT block signup if email fails - admin can still verify via direct link
     }
     
@@ -260,30 +260,27 @@ const resendVerificationEmail = async (req, res) => {
     // Send verification email
     const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin.html?token=${verificationToken}`
     
-    // Send verification email (non-blocking)
+    // Send verification email (non-blocking - always attempt, catch errors)
     try {
-      if (!EMAIL_PASS) {
-        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
-      } else {
-        console.log("📧 Attempting to resend verification email to:", email)
-        
-        await transporter.sendMail({
-          from: SENDER_EMAIL,
-          to: email,
-          subject: "Gossip Girl Admin - Verify Your Email",
-          html: `
-            <h2>Gossip Girl 💋</h2>
-            <p>Hi, ${admin.name},</p>
-            <p>Please verify your email by clicking the link below:</p>
-            <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
-            <p>Thank you!</p>
-          `
-        })
-        
-        console.log("✅ Verification email resent successfully")
-      }
+      console.log("📧 Attempting to resend verification email to:", email)
+      
+      await transporter.sendMail({
+        from: SENDER_EMAIL,
+        to: email,
+        subject: "Gossip Girl Admin - Verify Your Email",
+        html: `
+          <h2>Gossip Girl 💋</h2>
+          <p>Hi, ${admin.name},</p>
+          <p>Please verify your email by clicking the link below:</p>
+          <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
+          <p>Thank you!</p>
+        `
+      })
+      
+      console.log("✅ Verification email resent successfully")
     } catch (err) {
       console.error("❌ Email failed:", err.message)
+      console.error("Full error:", err)
       // DO NOT block resend if email fails
     }
     
@@ -315,31 +312,28 @@ const forgotPassword = async (req, res) => {
     // Send email
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin/reset-password/${resetToken}`
     
-    // Send reset email (non-blocking)
+    // Send reset email (non-blocking - always attempt, catch errors)
     try {
-      if (!EMAIL_PASS) {
-        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
-      } else {
-        console.log("📧 Attempting to send reset password email to:", email)
-        
-        await transporter.sendMail({
-          from: SENDER_EMAIL,
-          to: email,
-          subject: "Gossip Girl Admin - Reset Your Password",
-          html: `
-            <h2>Gossip Girl 💋</h2>
-            <p>Hi, ${admin.name},</p>
-            <p>Click below to reset your password:</p>
-            <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
-            <p>This link expires in 10 minutes.</p>
-            <p>Thank you!</p>
-          `
-        })
-        
-        console.log("✅ Reset password email sent successfully")
-      }
+      console.log("📧 Attempting to send reset password email to:", email)
+      
+      await transporter.sendMail({
+        from: SENDER_EMAIL,
+        to: email,
+        subject: "Gossip Girl Admin - Reset Your Password",
+        html: `
+          <h2>Gossip Girl 💋</h2>
+          <p>Hi, ${admin.name},</p>
+          <p>Click below to reset your password:</p>
+          <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+          <p>This link expires in 10 minutes.</p>
+          <p>Thank you!</p>
+        `
+      })
+      
+      console.log("✅ Reset password email sent successfully")
     } catch (err) {
       console.error("❌ Email failed:", err.message)
+      console.error("Full error:", err)
       // DO NOT block forgot password if email fails
     }
     
@@ -371,31 +365,28 @@ const resendResetPassword = async (req, res) => {
     // Send email
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin/reset-password/${resetToken}`
     
-    // Send reset email (non-blocking)
+    // Send reset email (non-blocking - always attempt, catch errors)
     try {
-      if (!EMAIL_PASS) {
-        console.warn("⚠️  EMAIL_PASS not configured - skipping email send")
-      } else {
-        console.log("📧 Attempting to resend reset password email to:", email)
-        
-        await transporter.sendMail({
-          from: SENDER_EMAIL,
-          to: email,
-          subject: "Gossip Girl Admin - Reset Your Password",
-          html: `
-            <h2>Gossip Girl 💋</h2>
-            <p>Hi, ${admin.name},</p>
-            <p>Click below to reset your password:</p>
-            <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
-            <p>This link expires in 10 minutes.</p>
-            <p>Thank you!</p>
-          `
-        })
-        
-        console.log("✅ Reset password email resent successfully")
-      }
+      console.log("📧 Attempting to resend reset password email to:", email)
+      
+      await transporter.sendMail({
+        from: SENDER_EMAIL,
+        to: email,
+        subject: "Gossip Girl Admin - Reset Your Password",
+        html: `
+          <h2>Gossip Girl 💋</h2>
+          <p>Hi, ${admin.name},</p>
+          <p>Click below to reset your password:</p>
+          <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+          <p>This link expires in 10 minutes.</p>
+          <p>Thank you!</p>
+        `
+      })
+      
+      console.log("✅ Reset password email resent successfully")
     } catch (err) {
       console.error("❌ Email failed:", err.message)
+      console.error("Full error:", err)
       // DO NOT block resend if email fails
     }
     
