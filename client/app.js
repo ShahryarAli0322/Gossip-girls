@@ -1,35 +1,23 @@
 // API Configuration - Backend URL
-// CRITICAL FIX: Force correct URL immediately, even if placeholder is present
-const CORRECT_BACKEND_URL = 'https://gossip-girls.onrender.com';
+// CRITICAL: Use the real backend URL - NO PLACEHOLDERS
+const BASE_URL = "https://gossip-girls.onrender.com"
 
-// Get from window (set in index.html) or use correct URL
-let API_BASE_URL = window.API_BASE_URL || CORRECT_BACKEND_URL;
-let SOCKET_URL = window.SOCKET_URL || CORRECT_BACKEND_URL;
-
-// FORCE FIX: Replace any placeholder immediately
-if (API_BASE_URL.includes('your-backend-url') || 
-    API_BASE_URL === 'https://gossip-girls.onrender.com' ||
-    !API_BASE_URL || 
-    API_BASE_URL === 'undefined') {
-  console.warn('⚠️ Placeholder URL detected! Fixing...', API_BASE_URL);
-  API_BASE_URL = CORRECT_BACKEND_URL;
-  SOCKET_URL = CORRECT_BACKEND_URL;
-  window.API_BASE_URL = CORRECT_BACKEND_URL;
-  window.SOCKET_URL = CORRECT_BACKEND_URL;
-  console.log('✅ Fixed: API_BASE_URL set to', API_BASE_URL);
+// Force clear old service workers on load
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(reg=>{
+      console.log("🗑️ Unregistering old service worker:", reg.scope)
+      reg.unregister()
+    })
+  })
 }
 
 // Log for debugging
-console.log("🔧 API Configuration:", { 
-  API_BASE_URL, 
-  SOCKET_URL,
-  window_API_BASE_URL: window.API_BASE_URL,
-  window_SOCKET_URL: window.SOCKET_URL
-})
+console.log("🔧 Using backend:", BASE_URL)
 
 // Initialize Socket.IO connection
-const socket = typeof io !== "undefined" ? io(SOCKET_URL, {
-transports:["websocket","polling"]
+const socket = typeof io !== "undefined" ? io(BASE_URL, {
+  transports: ["websocket", "polling"]
 }) : null
 
 let posts = []
@@ -216,7 +204,7 @@ if(!subscription){
 // Try to get VAPID key from server
 let subscriptionCreated=false
 try{
-const response=await fetch(`${API_BASE_URL}/api/push/vapid-key`)
+const response=await fetch(`${BASE_URL}/api/push/vapid-key`)
 if(response.ok){
 const data=await response.json()
 const vapidPublicKey=data.publicKey
@@ -232,7 +220,7 @@ localStorage.setItem("pushSubscription",JSON.stringify(subscription))
 
 // Send subscription to server
 try{
-await fetch(`${API_BASE_URL}/api/push/subscribe`,{
+await fetch(`${BASE_URL}/api/push/subscribe`,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify(subscription)
@@ -307,11 +295,11 @@ async function loadPosts(filter = "all"){
 
 try{
 
-let url = `${API_BASE_URL}/api/posts`
+let url = `${BASE_URL}/api/posts`
 if(filter === "hot"){
-url = `${API_BASE_URL}/api/posts/hot`
+url = `${BASE_URL}/api/posts/hot`
 }else if(filter !== "all"){
-url = `${API_BASE_URL}/api/posts/campus/${filter}`
+url = `${BASE_URL}/api/posts/campus/${filter}`
 }
 
 const res = await fetch(url)
@@ -470,20 +458,27 @@ console.log(`  ${pair[0]}: "${pair[1]}"`)
 }
 
 // Submit post
-console.log("📤 Submitting POST request to:", `${API_BASE_URL}/api/posts`)
-console.log("🔧 Using API_BASE_URL:", API_BASE_URL)
+console.log("📤 Submitting POST request to:", `${BASE_URL}/api/posts`)
+console.log("🔧 Using backend:", BASE_URL)
+console.log("📦 Posting data:", {
+  campus: formData.get('campus'),
+  text: formData.get('text'),
+  category: formData.get('category'),
+  author: formData.get('author'),
+  hasImage: formData.has('image')
+})
 
 // Test backend connection first
 try {
-  const testResponse = await fetch(`${API_BASE_URL}/`, { method: 'GET' })
+  const testResponse = await fetch(`${BASE_URL}/`, { method: 'GET' })
   console.log("✅ Backend connection test:", testResponse.status, await testResponse.text())
 } catch (testError) {
   console.error("❌ Backend connection failed:", testError)
-  alert("Cannot connect to backend. Please check if the backend is running at: " + API_BASE_URL)
+  alert("Cannot connect to backend. Please check if the backend is running at: " + BASE_URL)
   throw testError
 }
 
-const response=await fetch(`${API_BASE_URL}/api/posts`,{
+const response=await fetch(`${BASE_URL}/api/posts`,{
 method:"POST",
 body:formData
 // Do NOT set Content-Type header - browser sets it automatically with boundary for FormData
@@ -559,7 +554,7 @@ async function deletePost(id){
 
 try{
 
-await fetch(`${API_BASE_URL}/api/posts/`+id,{
+await fetch(`${BASE_URL}/api/posts/`+id,{
 method:"DELETE"
 })
 
@@ -577,7 +572,7 @@ async function react(id,type){
 
 try{
 
-await fetch(`${API_BASE_URL}/api/react/`+id,{
+await fetch(`${BASE_URL}/api/react/`+id,{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
@@ -764,7 +759,7 @@ console.log("Rendering post with image:",p._id,p.image)
 // Structure: Image first (if exists), then content below
 div.innerHTML=`
 
-${p.image && p.image !== null && p.image !== "null" && p.image.trim() !== "" ? `<div class="post-image"><img src="${p.image.startsWith('http') ? p.image : API_BASE_URL + p.image}" alt="gossip image" onerror="console.error('Image failed to load:', '${p.image}'); this.parentElement.style.display='none';" onload="console.log('Image loaded:', '${p.image}')"></div>` : ""}
+${p.image && p.image !== null && p.image !== "null" && p.image.trim() !== "" ? `<div class="post-image"><img src="${p.image.startsWith('http') ? p.image : BASE_URL + p.image}" alt="gossip image" onerror="console.error('Image failed to load:', '${p.image}'); this.parentElement.style.display='none';" onload="console.log('Image loaded:', '${p.image}')"></div>` : ""}
 
 <div class="post-content">
 
@@ -831,7 +826,7 @@ if(!reason) return
 
 try{
 
-await fetch(`${API_BASE_URL}/api/report/`+id,{
+await fetch(`${BASE_URL}/api/report/`+id,{
 method:"POST",
 headers:{
 "Content-Type":"application/json"

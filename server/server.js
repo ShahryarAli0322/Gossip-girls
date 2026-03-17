@@ -25,35 +25,22 @@ const PORT = process.env.PORT || 5000
 
 // CORS configuration - allow Vercel deployments
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
-    
-    // Allow the configured CLIENT_URL
-    if (origin === CLIENT_URL) {
-      return callback(null, true)
-    }
-    
-    // Allow all Vercel deployments (preview and production)
-    if (origin.includes('vercel.app')) {
-      return callback(null, true)
-    }
-    
-    // Log for debugging
-    console.log('CORS: Allowing origin:', origin)
-    callback(null, true) // Allow all for now - can restrict later
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept"]
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://gossip-girls-omega.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
 }
 
 const io = new Server(server,{
-cors:{
-origin: true, // Allow all origins for Socket.IO
-methods:["GET","POST"],
-credentials:true
-}
+  cors: {
+    origin: [
+      "https://gossip-girls-omega.vercel.app"
+    ],
+    methods: ["GET", "POST"]
+  }
 })
 
 /* MIDDLEWARE */

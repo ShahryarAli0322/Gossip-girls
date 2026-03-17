@@ -10,60 +10,56 @@ const urlsToCache = [
 /* INSTALL */
 
 self.addEventListener("install", event => {
+  // Force activate immediately
+  self.skipWaiting()
 
-event.waitUntil(
-
-caches.open(CACHE_NAME)
-.then(cache => {
-return cache.addAll(urlsToCache)
-})
-
-)
-
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+    .then(cache => {
+      return cache.addAll(urlsToCache)
+    })
+  )
 })
 
 
 /* ACTIVATE */
 
 self.addEventListener("activate", event => {
-
-event.waitUntil(
-caches.keys().then(keys => {
-
-return Promise.all(
-
-keys.map(key => {
-
-if(key !== CACHE_NAME){
-return caches.delete(key)
-}
-
-})
-
-)
-
-})
-
-)
-
+  // Take control immediately
+  event.waitUntil(
+    Promise.all([
+      // Clear old caches
+      caches.keys().then(keys => {
+        return Promise.all(
+          keys.map(key => {
+            if(key !== CACHE_NAME){
+              return caches.delete(key)
+            }
+          })
+        )
+      }),
+      // Claim all clients
+      self.clients.claim()
+    ])
+  )
 })
 
 
 /* FETCH (OFFLINE SUPPORT) */
 
 self.addEventListener("fetch", event => {
+  // DO NOT intercept API calls - let them go to network
+  if(event.request.url.includes("/api/")){
+    return fetch(event.request)
+  }
 
-event.respondWith(
-
-caches.match(event.request)
-.then(response => {
-
-return response || fetch(event.request)
-
-})
-
-)
-
+  // For other requests, use cache-first strategy
+  event.respondWith(
+    caches.match(event.request)
+    .then(response => {
+      return response || fetch(event.request)
+    })
+  )
 })
 
 
