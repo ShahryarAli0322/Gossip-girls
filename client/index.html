@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="description" content="Anonymous gossip platform for campus communities - Share secrets, post anonymously, and connect with your community in real-time.">
+<meta name="keywords" content="gossip, anonymous, campus, social media, real-time, gossip girl">
+<meta name="author" content="Gossip Girl">
+<meta name="theme-color" content="#ff2d87">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gossip Girl - Campus Gossip Platform">
+<meta property="og:description" content="Anonymous gossip platform for campus communities">
+<meta property="og:image" content="/verified-badge.png">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:title" content="Gossip Girl - Campus Gossip Platform">
+<meta property="twitter:description" content="Anonymous gossip platform for campus communities">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="/verified-badge.png">
+
+<title>Gossip Girl - Campus Gossip Platform</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Arial, Helvetica, sans-serif;
+background:#000;
+color:#fff;
+min-height:100vh;
+position:relative;
+overflow-x:hidden;
+}
+
+/* HEADER */
+
+.header{
+text-align:center;
+padding:70px 20px 40px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+position:relative;
+z-index:2;
+}
+
+.logo{
+font-size:60px;
+letter-spacing:10px;
+color:#ff2d87;
+}
+
+.school{
+margin-top:6px;
+font-size:14px;
+letter-spacing:3px;
+color:#aaa;
+}
+
+.tagline{
+margin-top:12px;
+font-style:italic;
+color:#bbb;
+}
+
+/* CONTAINER */
+
+.container{
+max-width:850px;
+margin:auto;
+padding:40px 20px;
+position:relative;
+z-index:2;
+}
+
+/* EMBER BACKGROUND */
+
+#ember-background{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+overflow:hidden;
+z-index:-1;
+background:#000;
+pointer-events:none;
+}
+
+.ember{
+position:absolute;
+border-radius:50%;
+background:#ff6b35;
+box-shadow:0 0 8px rgba(255,107,53,0.8), 0 0 16px rgba(255,140,66,0.6), 0 0 24px rgba(255,165,0,0.4);
+pointer-events:none;
+opacity:0.8;
+}
+
+@keyframes emberFloat{
+0%{
+transform:translateY(100vh) translateX(0) scale(0.8);
+opacity:1;
+}
+100%{
+transform:translateY(-20vh) translateX(var(--drift)) scale(1.3);
+opacity:0;
+}
+}
+
+/* POST BOX - GOSSIP GIRL CARD STYLE */
+
+.post-box{
+background:#000;
+border-radius:8px;
+padding:20px;
+margin-bottom:40px;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);
+position:relative;
+z-index:2;
+max-width:500px;
+margin-left:auto;
+margin-right:auto;
+transition:all 0.25s ease;
+border:1px solid transparent;
+}
+
+.post-box:focus-within{
+box-shadow:0 0 20px rgba(255,45,135,0.6),
+0 0 40px rgba(255,45,135,0.3);
+border:1px solid #ff2d87;
+}
+
+.post-box-header{
+display:flex;
+justify-content:flex-end;
+align-items:center;
+margin-bottom:12px;
+}
+
+.image-upload-btn{
+background:transparent;
+border:none;
+color:#666;
+padding:4px 8px;
+border-radius:4px;
+cursor:pointer;
+font-size:11px;
+display:inline-flex;
+align-items:center;
+gap:4px;
+transition:all 0.2s;
+}
+
+.image-upload-btn:hover{
+color:#ff2d87;
+}
+
+.image-upload-btn input[type="file"]{
+display:none;
+}
+
+.image-upload-btn.has-file{
+border-color:#ff2d87;
+background:rgba(255,45,135,0.1);
+color:#ff2d87;
+}
+
+.kiss-animation{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+overflow:hidden;
+border-radius:8px;
+}
+
+.kiss-particle{
+position:absolute;
+font-size:14px;
+opacity:0;
+animation:kissFloat 3s ease-out infinite;
+pointer-events:none;
+z-index:10;
+}
+
+@keyframes kissFloat{
+0%{
+transform:translateY(100%) translateX(0) scale(0.7);
+opacity:0;
+}
+15%{
+opacity:0.7;
+}
+85%{
+opacity:0.5;
+}
+100%{
+transform:translateY(-40px) translateX(var(--kiss-drift)) scale(1);
+opacity:0;
+}
+}
+
+.post-box-title{
+text-align:center;
+font-size:16px;
+font-weight:600;
+color:#fff;
+margin-bottom:12px;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+.post-box-options{
+display:flex;
+gap:8px;
+margin-bottom:12px;
+}
+
+.post-box-options select{
+flex:1;
+margin-bottom:0;
+}
+
+.post-box-actions{
+display:flex;
+gap:8px;
+margin-top:12px;
+}
+
+.post-box-actions button{
+margin-top:0;
+flex:1;
+}
+
+textarea{
+width:100%;
+background:transparent;
+border:none;
+color:#fff;
+padding:8px 0;
+min-height:120px;
+resize:none;
+font-size:13px;
+line-height:1.6;
+font-family:Arial, Helvetica, sans-serif;
+outline:none;
+}
+
+textarea::placeholder{
+color:rgba(255,255,255,0.4);
+}
+
+select{
+width:100%;
+margin-bottom:0;
+background:#fff;
+color:#000;
+border:1px solid rgba(0,0,0,0.15);
+padding:6px 8px;
+border-radius:4px;
+font-size:12px;
+cursor:pointer;
+}
+
+select:hover{
+border-color:rgba(0,0,0,0.3);
+}
+
+button{
+margin-top:8px;
+width:100%;
+background:#ff2d87;
+border:none;
+padding:10px;
+border-radius:6px;
+color:white;
+font-weight:600;
+cursor:pointer;
+transition:all 0.2s;
+font-size:13px;
+}
+
+button:hover{
+background:#ff4da6;
+}
+
+/* POSTS */
+
+.post{
+background:white;
+border:none;
+border-radius:8px;
+padding:0;
+margin-bottom:20px;
+display:flex;
+flex-direction:column;
+position:relative;
+box-shadow:0 2px 10px rgba(0,0,0,0.12);
+max-width:380px;
+width:100%;
+margin-left:auto;
+margin-right:auto;
+overflow:hidden;
+}
+
+.post-image{
+width:100%;
+height:auto;
+margin:0;
+padding:12px 12px 0 12px;
+border-radius:8px 8px 0 0;
+overflow:hidden;
+box-sizing:border-box;
+}
+
+.post-image img{
+width:100%;
+height:auto;
+max-height:320px;
+min-height:200px;
+display:block;
+object-fit:cover;
+border-radius:6px;
+margin:0 auto;
+}
+
+.post-content{
+width:100%;
+background:white;
+color:black;
+padding:10px 14px 12px 14px;
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+.post.has-image .post-content{
+border-radius:0 0 8px 8px;
+}
+
+.post.no-image .post-content{
+border-radius:8px;
+}
+
+.post-content > div:first-child{
+display:flex;
+align-items:center;
+flex-wrap:wrap;
+gap:6px;
+margin-bottom:4px;
+}
+
+.post-content > div:nth-child(2){
+font-size:13px;
+line-height:1.5;
+color:#333;
+white-space:pre-wrap;
+word-wrap:break-word;
+margin-bottom:4px;
+}
+
+.avatar{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:24px;
+height:24px;
+border-radius:50%;
+background:#ff2d87;
+color:white;
+font-size:12px;
+font-weight:bold;
+margin-right:6px;
+}
+
+.badge{
+display:inline-block;
+font-size:11px;
+padding:4px 8px;
+border-radius:6px;
+background:#ff2d87;
+color:white;
+margin-right:6px;
+}
+
+.campus{
+font-size:12px;
+background:#222;
+color:#fff;
+padding:3px 6px;
+border-radius:4px;
+margin-right:6px;
+}
+
+/* REACTIONS */
+
+.react-toggle{
+background:none;
+color:#ff2d87;
+border:none;
+padding:0;
+font-size:12px;
+width:auto;
+cursor:pointer;
+margin-top:0;
+margin-left:0;
+font-weight:normal;
+text-decoration:none;
+text-align:left;
+display:inline-block;
+}
+
+.reaction-picker{
+display:none;
+gap:8px;
+margin-top:6px;
+}
+
+.reaction-picker span{
+font-size:18px;
+cursor:pointer;
+}
+
+.reaction-counts{
+margin-top:6px;
+font-size:12px;
+color:#444;
+display:flex;
+gap:12px;
+align-items:center;
+}
+
+.reaction-counts span{
+font-size:12px;
+}
+
+/* BLAST HEADER BADGES */
+
+.blast-header{
+display:flex;
+align-items:center;
+gap:6px;
+margin-bottom:10px;
+flex-wrap:wrap;
+}
+
+.admin-tag{
+background:#ff2d87;
+color:white;
+padding:4px 10px;
+border-radius:14px;
+font-size:12px;
+font-weight:600;
+display:inline-flex;
+align-items:center;
+gap:6px;
+}
+
+.verified-icon{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:20px;
+height:20px;
+margin:0 6px;
+flex-shrink:0;
+}
+
+.verified-icon .verified-badge-img{
+width:20px;
+height:20px;
+display:block;
+object-fit:contain;
+}
+
+.verified-tick{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+width:20px;
+height:20px;
+margin:0 6px;
+flex-shrink:0;
+vertical-align:middle;
+}
+
+.verified-tick .verified-badge-img{
+width:20px;
+height:20px;
+display:block;
+object-fit:contain;
+}
+
+.blast-tag{
+background:#ff2d87;
+color:white;
+padding:4px 10px;
+border-radius:14px;
+font-size:12px;
+font-weight:600;
+display:inline-flex;
+align-items:center;
+gap:6px;
+}
+
+/* PINNED POST */
+
+.post.pinned{
+border-color:#ff2d87;
+border-width:2px;
+}
+
+.post.pinned::before{
+content:"📌";
+position:absolute;
+top:10px;
+right:10px;
+font-size:20px;
+}
+
+/* ADMIN BLAST */
+
+.post.admin-blast{
+border-color:#ff2d87;
+border-width:3px;
+background:linear-gradient(135deg, #0c0c0c 0%, #1a0a1a 100%);
+}
+
+.post.admin-blast::before{
+content:"✨";
+position:absolute;
+top:10px;
+right:10px;
+font-size:20px;
+}
+
+/* TRENDING HEADER */
+
+.trending-header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+margin-bottom:14px;
+}
+
+.trending-title{
+font-size:22px;
+color:white;
+margin:0;
+}
+
+/* GLASSMORPHISM DROPDOWN */
+
+.filter-container{
+display:flex;
+align-items:center;
+}
+
+.glass-dropdown{
+appearance:none;
+background:rgba(255,255,255,0.05);
+color:white;
+border:1px solid rgba(255,45,135,0.4);
+padding:8px 14px;
+padding-right:32px;
+border-radius:12px;
+font-size:14px;
+backdrop-filter:blur(10px);
+cursor:pointer;
+outline:none;
+transition:all 0.25s ease;
+min-width:120px;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ff2d87' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+background-repeat:no-repeat;
+background-position:right 10px center;
+background-size:12px;
+}
+
+.glass-dropdown:hover{
+border-color:#ff2d87;
+box-shadow:0 0 8px rgba(255,45,135,0.5);
+}
+
+.glass-dropdown:focus{
+border-color:#ff2d87;
+box-shadow:0 0 12px rgba(255,45,135,0.6);
+}
+
+.glass-dropdown option{
+background:#1a1a1a;
+color:white;
+}
+
+/* REPORT BUTTON */
+
+.report-btn{
+font-size:12px;
+color:#ff6b6b;
+cursor:pointer;
+margin-top:0;
+text-decoration:none;
+}
+
+/* REACT, DELETE AND REPORT CONTAINER */
+
+.post-actions{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:6px;
+width:100%;
+}
+
+.post-actions-left{
+display:flex;
+align-items:center;
+}
+
+.post-actions-center{
+display:flex;
+align-items:center;
+flex:1;
+justify-content:center;
+}
+
+.post-actions-right{
+display:flex;
+align-items:center;
+}
+
+.delete{
+font-size:12px;
+color:red;
+cursor:pointer;
+margin-top:0;
+text-decoration:none;
+}
+
+
+/* TRENDING */
+
+.trend{
+color:#aaa;
+font-size:13px;
+}
+
+/* BLAST */
+
+.blast{
+position:fixed;
+top:20px;
+right:20px;
+background:#111;
+padding:15px;
+border-radius:10px;
+display:none;
+}
+
+/* FIREWORKS */
+
+#fireworks{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+}
+
+.firework{
+position:absolute;
+font-size:18px;
+animation:firework 1.2s ease-out forwards;
+}
+
+@keyframes firework{
+0%{transform:scale(.5) translateY(0);opacity:1;}
+100%{transform:scale(2) translateY(-40px);opacity:0;}
+}
+
+/* NAME POPUP */
+
+.name-modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+.name-box{
+background:#ffd6e8;
+padding:40px;
+border-radius:16px;
+text-align:center;
+color:black;
+width:320px;
+}
+
+.name-box input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+}
+
+.name-box button{
+margin-top:15px;
+background:#ff2d87;
+}
+
+/* IMAGE PREVIEW */
+
+#imagePreviewContainer{
+margin-top:12px;
+text-align:center;
+}
+
+#imagePreview{
+max-width:100%;
+max-height:200px;
+border-radius:8px;
+object-fit:contain;
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Extra Large Devices (Large Desktops, 1440px and up) */
+@media (min-width:1440px){
+
+.container{
+max-width:1200px;
+}
+
+.post-box{
+max-width:600px;
+}
+
+.post{
+max-width:420px;
+}
+
+}
+
+/* Large Devices (Desktops, 1024px to 1439px) */
+@media (min-width:1024px) and (max-width:1439px){
+
+.container{
+max-width:1000px;
+}
+
+}
+
+/* Medium Devices (Tablets, 768px to 1023px) */
+@media (min-width:768px) and (max-width:1023px){
+
+.container{
+padding:30px 20px;
+max-width:100%;
+}
+
+.header{
+padding:50px 20px 35px;
+}
+
+.logo{
+font-size:50px;
+letter-spacing:7px;
+}
+
+.post-box{
+max-width:100%;
+padding:18px;
+}
+
+.post{
+max-width:100%;
+}
+
+.post-image img{
+max-height:400px;
+min-height:250px;
+}
+
+.trending-header{
+flex-wrap:wrap;
+}
+
+}
+
+/* Small Devices (Landscape Phones, 576px to 767px) */
+@media (min-width:576px) and (max-width:767px){
+
+.container{
+padding:25px 15px;
+max-width:100%;
+}
+
+.header{
+padding:45px 15px 30px;
+}
+
+.logo{
+font-size:42px;
+letter-spacing:6px;
+}
+
+.school{
+font-size:13px;
+letter-spacing:2px;
+}
+
+.tagline{
+font-size:13px;
+}
+
+.post-box{
+max-width:100%;
+padding:16px;
+margin-bottom:30px;
+}
+
+.post-box-title{
+font-size:15px;
+}
+
+.post{
+max-width:100%;
+margin-bottom:18px;
+}
+
+.post-content{
+padding:10px 12px;
+}
+
+.post-content > div:nth-child(2){
+font-size:13px;
+}
+
+.post-image img{
+max-height:350px;
+min-height:220px;
+}
+
+.trending-header{
+flex-direction:column;
+align-items:flex-start;
+gap:10px;
+margin-bottom:16px;
+}
+
+.trending-title{
+font-size:20px;
+}
+
+.filter-container{
+width:100%;
+}
+
+.glass-dropdown{
+width:100%;
+font-size:14px;
+padding:8px 14px;
+}
+
+.post-box-options{
+flex-direction:row;
+gap:10px;
+}
+
+.post-box-options select{
+font-size:13px;
+padding:7px 10px;
+}
+
+textarea{
+font-size:15px;
+min-height:110px;
+padding:10px 0;
+}
+
+button{
+font-size:14px;
+padding:10px;
+min-height:44px;
+}
+
+.post-box-actions{
+flex-direction:row;
+gap:10px;
+}
+
+.post-box-actions button{
+flex:1;
+}
+
+.avatar{
+width:26px;
+height:26px;
+font-size:13px;
+}
+
+.badge{
+font-size:12px;
+padding:5px 10px;
+}
+
+.campus{
+font-size:13px;
+padding:4px 8px;
+}
+
+.reaction-counts{
+font-size:12px;
+gap:10px;
+}
+
+.reaction-picker span{
+font-size:20px;
+}
+
+.blast{
+top:15px;
+right:15px;
+padding:12px;
+font-size:13px;
+max-width:calc(100vw - 30px);
+}
+
+.name-box{
+width:90%;
+max-width:400px;
+padding:35px;
+}
+
+}
+
+/* Extra Small Devices (Portrait Phones, up to 575px) */
+@media (max-width:575px){
+
+.container{
+padding:20px 12px;
+max-width:100%;
+}
+
+.header{
+padding:35px 15px 25px;
+}
+
+.logo{
+font-size:36px;
+letter-spacing:4px;
+}
+
+.school{
+font-size:12px;
+letter-spacing:2px;
+margin-top:4px;
+}
+
+.tagline{
+font-size:12px;
+margin-top:10px;
+line-height:1.4;
+}
+
+.post-box{
+max-width:100%;
+padding:14px;
+margin-bottom:25px;
+}
+
+.post-box-header{
+margin-bottom:10px;
+}
+
+.image-upload-btn{
+font-size:10px;
+padding:3px 6px;
+}
+
+.post-box-title{
+font-size:14px;
+margin-bottom:10px;
+}
+
+.post-box-options{
+flex-direction:column;
+gap:8px;
+margin-bottom:10px;
+}
+
+.post-box-options select{
+width:100%;
+font-size:13px;
+padding:8px 10px;
+min-height:44px;
+}
+
+textarea{
+font-size:16px;
+min-height:100px;
+padding:8px 0;
+line-height:1.5;
+}
+
+textarea::placeholder{
+font-size:16px;
+}
+
+button{
+font-size:14px;
+padding:12px;
+min-height:48px;
+width:100%;
+}
+
+.post-box-actions{
+flex-direction:column;
+gap:10px;
+margin-top:12px;
+}
+
+.post-box-actions button{
+width:100%;
+}
+
+.post{
+max-width:100%;
+margin-bottom:16px;
+}
+
+.post-image{
+padding:10px 10px 0 10px;
+}
+
+.post-image img{
+max-height:300px;
+min-height:180px;
+border-radius:6px;
+}
+
+.post-content{
+padding:10px 12px 10px 12px;
+gap:5px;
+}
+
+.post-content > div:first-child{
+gap:5px;
+margin-bottom:3px;
+}
+
+.post-content > div:nth-child(2){
+font-size:13px;
+line-height:1.5;
+margin-bottom:3px;
+}
+
+.avatar{
+width:22px;
+height:22px;
+font-size:11px;
+margin-right:4px;
+}
+
+.badge{
+font-size:10px;
+padding:3px 7px;
+margin-right:4px;
+}
+
+.campus{
+font-size:11px;
+padding:3px 6px;
+margin-right:4px;
+}
+
+.verified-icon,
+.verified-tick{
+width:18px;
+height:18px;
+margin:0 4px;
+}
+
+.verified-icon .verified-badge-img,
+.verified-tick .verified-badge-img{
+width:18px;
+height:18px;
+}
+
+.blast-header{
+gap:4px;
+margin-bottom:8px;
+}
+
+.admin-tag,
+.blast-tag{
+font-size:11px;
+padding:3px 8px;
+}
+
+.react-toggle{
+font-size:11px;
+padding:4px 0;
+}
+
+.reaction-picker{
+gap:6px;
+margin-top:5px;
+}
+
+.reaction-picker span{
+font-size:16px;
+padding:4px;
+}
+
+.reaction-counts{
+font-size:11px;
+gap:8px;
+margin-top:5px;
+flex-wrap:wrap;
+}
+
+.reaction-counts span{
+font-size:11px;
+}
+
+.post-actions{
+flex-wrap:wrap;
+gap:8px;
+margin-top:8px;
+}
+
+.report-btn,
+.delete{
+font-size:11px;
+padding:4px 0;
+}
+
+.trending-header{
+flex-direction:column;
+align-items:flex-start;
+gap:10px;
+margin-bottom:14px;
+}
+
+.trending-title{
+font-size:18px;
+margin:0;
+}
+
+.filter-container{
+width:100%;
+}
+
+.glass-dropdown{
+width:100%;
+font-size:14px;
+padding:10px 14px;
+padding-right:36px;
+min-height:44px;
+border-radius:10px;
+}
+
+.glass-dropdown option{
+font-size:14px;
+padding:8px;
+}
+
+.blast{
+position:fixed;
+top:10px;
+right:10px;
+left:10px;
+background:#111;
+padding:12px;
+border-radius:8px;
+display:none;
+font-size:12px;
+z-index:1000;
+max-width:calc(100vw - 20px);
+}
+
+.name-modal{
+padding:20px;
+}
+
+.name-box{
+width:90%;
+max-width:320px;
+padding:30px 20px;
+}
+
+.name-box h2{
+font-size:20px;
+margin-bottom:15px;
+}
+
+.name-box input{
+padding:12px;
+font-size:16px;
+margin-top:12px;
+min-height:44px;
+}
+
+.name-box button{
+margin-top:15px;
+padding:12px;
+font-size:14px;
+min-height:48px;
+}
+
+#imagePreview{
+max-width:100%;
+max-height:180px;
+border-radius:6px;
+}
+
+#imagePreviewContainer{
+margin-top:10px;
+}
+
+}
+
+/* Very Small Devices (Small Phones, up to 360px) */
+@media (max-width:360px){
+
+.container{
+padding:15px 10px;
+}
+
+.header{
+padding:30px 12px 20px;
+}
+
+.logo{
+font-size:28px;
+letter-spacing:3px;
+}
+
+.school{
+font-size:11px;
+}
+
+.tagline{
+font-size:11px;
+}
+
+.post-box{
+padding:12px;
+}
+
+.post-box-title{
+font-size:13px;
+}
+
+.post-box-options select{
+font-size:12px;
+padding:7px 8px;
+}
+
+textarea{
+font-size:15px;
+min-height:90px;
+}
+
+button{
+font-size:13px;
+padding:10px;
+}
+
+.post-content{
+padding:8px 10px;
+}
+
+.post-content > div:nth-child(2){
+font-size:12px;
+}
+
+.trending-title{
+font-size:16px;
+}
+
+.glass-dropdown{
+font-size:13px;
+padding:8px 12px;
+}
+
+.name-box{
+width:95%;
+padding:25px 15px;
+}
+
+.name-box h2{
+font-size:18px;
+}
+
+}
+
+/* Landscape Orientation */
+@media (max-height:500px) and (orientation:landscape){
+
+.header{
+padding:20px 15px 15px;
+}
+
+.logo{
+font-size:32px;
+letter-spacing:4px;
+}
+
+.school{
+font-size:11px;
+margin-top:2px;
+}
+
+.tagline{
+font-size:11px;
+margin-top:6px;
+}
+
+.container{
+padding:15px 12px;
+}
+
+.post-box{
+margin-bottom:20px;
+padding:12px;
+}
+
+}
+
+/* Touch Device Optimizations */
+@media (hover:none) and (pointer:coarse){
+
+button,
+.react-toggle,
+.report-btn,
+.delete,
+.image-upload-btn{
+min-height:44px;
+min-width:44px;
+}
+
+.reaction-picker span{
+min-width:44px;
+min-height:44px;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+}
+
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio:2),
+(min-resolution:192dpi){
+
+.post-image img{
+image-rendering:-webkit-optimize-contrast;
+image-rendering:crisp-edges;
+}
+
+}
+
+/* Prevent horizontal scrolling */
+html,body{
+overflow-x:hidden;
+max-width:100vw;
+position:relative;
+}
+
+*{
+max-width:100%;
+box-sizing:border-box;
+}
+
+img,video,iframe{
+max-width:100%;
+height:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="ember-background"></div>
+
+<div class="header">
+
+<div class="logo">GOSSIP GIRL</div>
+
+<div class="school">BMI • LGS • ROOTS</div>
+
+<div class="tagline">
+Spotted: secrets across BMI, LGS, and ROOTS that refuse to stay quiet.
+</div>
+
+</div>
+
+<div class="container">
+
+<div class="post-box">
+<div class="kiss-animation"></div>
+
+<div class="post-box-header">
+<label class="image-upload-btn">
+📎
+<input type="file" id="gossipImage" accept="image/*">
+</label>
+</div>
+
+<div class="post-box-title">Write Your Gossip</div>
+
+<div class="post-box-options">
+<select id="campus">
+<option value="BMI">BMI</option>
+<option value="LGS">LGS</option>
+<option value="ROOTS">ROOTS</option>
+</select>
+
+<select id="category">
+<option value="Spotted">Spotted 👀</option>
+<option value="Blast">Blast 💣</option>
+<option value="Tea">Tea ☕</option>
+</select>
+</div>
+
+<textarea id="gossipText" placeholder="I've received a few tips..."></textarea>
+
+<div id="imagePreviewContainer" style="margin-top:12px;display:none;">
+<img id="imagePreview" style="max-width:100%;max-height:200px;border-radius:8px;display:none;">
+</div>
+
+<div class="post-box-actions">
+<button type="button" id="submitBtn" onclick="submitPost(event)">Submit</button>
+<button type="button" onclick="followGossipGirl()">Follow Gossip Girl 💋</button>
+</div>
+
+</div>
+
+<div class="trending-header">
+<h2 class="trending-title">🎓 Trending</h2>
+<div class="filter-container">
+<select id="campusFilter" class="glass-dropdown">
+<option value="all">All</option>
+<option value="BMI">BMI</option>
+<option value="LGS">LGS</option>
+<option value="ROOTS">ROOTS</option>
+</select>
+</div>
+</div>
+<div id="trendingList"></div>
+
+<div id="gossipList"></div>
+
+</div>
+
+<div id="blast" class="blast"></div>
+<div id="fireworks"></div>
+
+<div id="nameModal" class="name-modal">
+<div class="name-box">
+<h2>Who do you want to be?</h2>
+<input id="nameInput" placeholder="Enter your name">
+<button onclick="saveName()">Enter</button>
+</div>
+</div>
+
+<script>
+// Dynamically load Socket.IO from backend URL
+// Update API_BASE_URL with your actual backend URL after deployment
+(function() {
+  // Try to get from environment variable or use default
+  const API_BASE_URL = window.API_BASE_URL || "https://your-backend-url.onrender.com";
+  const script = document.createElement('script');
+  script.src = `${API_BASE_URL}/socket.io/socket.io.js`;
+  script.onerror = function() {
+    console.warn('Failed to load Socket.IO from backend, using CDN fallback');
+    // Fallback: use CDN if backend fails
+    const fallback = document.createElement('script');
+    fallback.src = 'https://cdn.socket.io/4.8.3/socket.io.min.js';
+    fallback.onload = function() {
+      console.log('Socket.IO loaded from CDN');
+    };
+    document.head.appendChild(fallback);
+  };
+  script.onload = function() {
+    console.log('Socket.IO loaded from backend');
+  };
+  document.head.appendChild(script);
+})();
+</script>
+<script src="app.js"></script>
+
+</body>
+</html>
