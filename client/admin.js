@@ -319,7 +319,9 @@ async function verifyEmail(token) {
 
 // Resend Verification Email
 async function resendVerificationEmail() {
-  const email = document.getElementById("verificationEmail").textContent.replace("Verification email sent to: ", "")
+  // Get email from verification section data attribute or from the displayed email
+  const verificationSection = document.getElementById("verificationSection")
+  let email = verificationSection?.dataset.email || document.getElementById("verificationEmail")?.textContent?.trim()
   
   if (!email) {
     showAlert("Email not found", "error")
@@ -327,11 +329,12 @@ async function resendVerificationEmail() {
   }
   
   try {
+    showAlert("Sending verification email...", "success")
     await apiCall("/resend-verification", {
       method: "POST",
       body: JSON.stringify({ email })
     })
-    showAlert("Verification email resent!", "success")
+    showAlert("✅ Verification email resent! Please check your inbox.", "success")
   } catch (error) {
     showAlert(error.message || "Failed to resend email", "error")
   }
