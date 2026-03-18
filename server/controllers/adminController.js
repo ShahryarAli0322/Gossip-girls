@@ -9,16 +9,22 @@ const JWT_EXPIRY = "7d"
 
 // Email configuration - Using Resend (more reliable than Gmail SMTP)
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const SENDER_EMAIL = process.env.EMAIL_USER || "zaraconnecthere@gmail.com"
+// Resend requires verified domain. Use Resend's default domain or your custom verified domain
+// For free tier, use: onboarding@resend.dev (Resend's default)
+// Or set RESEND_FROM_EMAIL to your verified domain email
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev"
 const SENDER_NAME = "Gossip Girl Admin"
+const REPLY_TO_EMAIL = process.env.EMAIL_USER || "zaraconnecthere@gmail.com" // For reply-to
 
 // Log email configuration
 console.log("📧 Email Configuration (Resend):")
 console.log("  RESEND_API_KEY:", RESEND_API_KEY ? "✅ Set" : "❌ Not set")
-console.log("  SENDER_EMAIL:", SENDER_EMAIL)
+console.log("  RESEND_FROM_EMAIL:", RESEND_FROM_EMAIL)
+console.log("  REPLY_TO_EMAIL:", REPLY_TO_EMAIL)
 console.log("  SENDER_NAME:", SENDER_NAME)
-console.log("  📤 Sender Email (FROM):", SENDER_EMAIL)
+console.log("  📤 Sender Email (FROM):", RESEND_FROM_EMAIL)
 console.log("  📥 Recipient Email (TO): User's email from signup form")
+console.log("  💡 Note: To use custom domain, verify it at https://resend.com/domains and set RESEND_FROM_EMAIL")
 
 // Initialize Resend
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null
@@ -30,6 +36,7 @@ if (!RESEND_API_KEY) {
   console.warn("⚠️  Get your API key from: https://resend.com/api-keys")
 } else {
   console.log("✅ Resend email service configured")
+  console.log("✅ Using sending domain:", RESEND_FROM_EMAIL.split("@")[1])
 }
 
 // Admin Signup (max 2 admins)
