@@ -107,7 +107,7 @@ const signup = async (req, res) => {
     // Send verification email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to send verification email to:", email)
-      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 From:", RESEND_FROM_EMAIL)
       
       if (!resend) {
         console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
@@ -337,7 +337,7 @@ const resendVerificationEmail = async (req, res) => {
     // Send verification email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to resend verification email to:", email)
-      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 From:", RESEND_FROM_EMAIL)
       
       if (!resend) {
         console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
@@ -423,7 +423,7 @@ const forgotPassword = async (req, res) => {
     // Send reset email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to send reset password email to:", email)
-      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 From:", RESEND_FROM_EMAIL)
       
       if (!resend) {
         console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
@@ -495,7 +495,7 @@ const resendResetPassword = async (req, res) => {
     // Send reset email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to resend reset password email to:", email)
-      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 From:", RESEND_FROM_EMAIL)
       
       if (!resend) {
         console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
