@@ -19,18 +19,28 @@ console.log("  EMAIL_PASS:", EMAIL_PASS ? "✅ Set" : "❌ Not set")
 console.log("  📤 Sender Email (FROM):", EMAIL_USER)
 console.log("  📥 Recipient Email (TO): User's email from signup form")
 
-// Create transporter (will attempt to send even if EMAIL_PASS might be missing - errors will be caught)
+// Create transporter with explicit Gmail SMTP settings and timeout configuration
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use TLS
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS || "" // Allow empty string, error will be caught when sending
   },
-  // Additional Gmail configuration
-  secure: true,
+  // Connection timeout settings
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000, // 10 seconds
+  socketTimeout: 10000, // 10 seconds
+  // TLS configuration
   tls: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+    ciphers: "SSLv3"
+  },
+  // Retry configuration
+  pool: true,
+  maxConnections: 1,
+  maxMessages: 3
 })
 
 // Verify transporter connection on startup
