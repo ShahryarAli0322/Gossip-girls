@@ -193,6 +193,8 @@ async function apiCall(endpoint, options = {}) {
       // Include full error data for better handling
       const error = new Error(`${errorMsg}${errorDetails}`)
       error.responseData = data // Attach full response for detailed error handling
+      error.status = response.status // Attach status code
+      console.log("❌ Error with responseData:", error.responseData)
       throw error
     }
     
@@ -228,10 +230,18 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   } catch (error) {
     // Check if error is due to unverified email
     const errorMessage = error.message || "Login failed"
-    if (errorMessage.includes("verify") || errorMessage.includes("verification")) {
+    const errorData = error.responseData || {}
+    
+    // Check if login failed due to unverified email
+    if (errorMessage.includes("verify") || errorMessage.includes("verification") || errorData.requiresVerification) {
       showAlert(errorMessage, "error")
-      // Show resend verification option
-      showResendVerificationOnLogin(email)
+      // Show resend verification option with email from response or form
+      const emailToUse = errorData.email || email
+      showResendVerificationOnLogin(emailToUse)
+      // Also show verification page as alternative
+      setTimeout(() => {
+        showVerification(emailToUse)
+      }, 3000)
     } else {
       showAlert(errorMessage, "error")
     }
