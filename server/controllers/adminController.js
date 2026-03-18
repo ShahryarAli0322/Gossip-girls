@@ -20,27 +20,28 @@ console.log("  📤 Sender Email (FROM):", EMAIL_USER)
 console.log("  📥 Recipient Email (TO): User's email from signup form")
 
 // Create transporter with explicit Gmail SMTP settings and timeout configuration
+// Try port 587 (TLS) first, if that fails, port 465 (SSL) will be used
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false, // Use TLS
+  secure: false, // Use TLS (STARTTLS)
+  requireTLS: true,
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS || "" // Allow empty string, error will be caught when sending
   },
-  // Connection timeout settings
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000, // 10 seconds
-  socketTimeout: 10000, // 10 seconds
+  // Connection timeout settings (increased for Render)
+  connectionTimeout: 20000, // 20 seconds
+  greetingTimeout: 20000, // 20 seconds
+  socketTimeout: 20000, // 20 seconds
   // TLS configuration
   tls: {
     rejectUnauthorized: false,
-    ciphers: "SSLv3"
+    minVersion: "TLSv1.2"
   },
-  // Retry configuration
-  pool: true,
-  maxConnections: 1,
-  maxMessages: 3
+  // Debug mode (set to true for more verbose logging)
+  debug: false,
+  logger: false
 })
 
 // Verify transporter connection on startup
