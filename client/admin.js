@@ -60,7 +60,15 @@ function showForgotPassword() {
 
 function showVerification(email) {
   showSection("verificationSection")
-  document.getElementById("verificationEmail").textContent = `Verification email sent to: ${email}`
+  // Store email for resend functionality
+  if (email) {
+    document.getElementById("verificationEmail").textContent = email
+    // Store email in a data attribute for resend function
+    const verificationSection = document.getElementById("verificationSection")
+    if (verificationSection) {
+      verificationSection.dataset.email = email
+    }
+  }
 }
 
 // Show resend verification option on login failure
@@ -255,13 +263,9 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
     
     console.log("✅ Signup response:", data)
     
-    if (data.requiresVerification) {
-      showAlert("Verification email sent! Please check your email.", "success")
-      showVerification(data.email || email)
-    } else {
-      showAlert("Signup successful!")
-      showLogin()
-    }
+    // Always show verification page after successful signup
+    showAlert("Verification email sent! Please check your email.", "success")
+    showVerification(data.email || email)
   } catch (error) {
     console.error("❌ Signup error:", error)
     const errorMessage = error.message || "Signup failed"
