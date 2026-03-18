@@ -269,7 +269,35 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
   } catch (error) {
     console.error("❌ Signup error:", error)
     const errorMessage = error.message || "Signup failed"
-    showAlert(errorMessage, "error")
+    
+    // Handle email already exists error with helpful message
+    if (errorMessage.includes("Email already exists")) {
+      // Check if we have detailed error data from response
+      const errorData = error.responseData || {}
+      
+      if (errorData.emailExists) {
+        if (!errorData.isVerified) {
+          // Email exists but not verified - show verification page with resend option
+          showAlert("This email is already registered but not verified. Please check your email or resend verification.", "error")
+          showVerification(email)
+        } else {
+          // Email exists and verified - suggest login
+          showAlert("This email is already registered. Please login instead.", "error")
+          setTimeout(() => {
+            showLogin()
+          }, 2000)
+        }
+        return
+      }
+      
+      // Generic email exists error - suggest login
+      showAlert("This email is already registered. Please login instead.", "error")
+      setTimeout(() => {
+        showLogin()
+      }, 2000)
+    } else {
+      showAlert(errorMessage, "error")
+    }
   }
 })
 

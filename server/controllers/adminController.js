@@ -73,9 +73,21 @@ const signup = async (req, res) => {
     // Check duplicate email
     const existing = await Admin.findOne({ email })
     if (existing) {
-      return res.status(400).json({
-        error: "Email already exists"
-      })
+      if (!existing.isVerified) {
+        return res.status(400).json({
+          error: "Email already exists but not verified",
+          emailExists: true,
+          isVerified: false,
+          message: "This email is already registered but not verified. Please check your email for the verification link or use the resend option."
+        })
+      } else {
+        return res.status(400).json({
+          error: "Email already exists",
+          emailExists: true,
+          isVerified: true,
+          message: "This email is already registered. Please login instead."
+        })
+      }
     }
     
     // Generate verification token
