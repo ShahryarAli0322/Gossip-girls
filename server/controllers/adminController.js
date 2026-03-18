@@ -368,9 +368,16 @@ const resendVerificationEmail = async (req, res) => {
     // Send verification email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to resend verification email to:", email)
+      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      await transporter.sendMail({
-        from: SENDER_EMAIL,
+      if (!EMAIL_PASS) {
+        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
+        throw new Error("EMAIL_PASS not configured")
+      }
+      
+      const mailOptions = {
+        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Verify Your Email",
         html: `
@@ -378,14 +385,28 @@ const resendVerificationEmail = async (req, res) => {
           <p>Hi, ${admin.name},</p>
           <p>Please verify your email by clicking the link below:</p>
           <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
+          <p>Or copy and paste this link in your browser:</p>
+          <p style="color:#888;font-size:12px;word-break:break-all;">${verificationUrl}</p>
           <p>Thank you!</p>
         `
-      })
+      }
       
+      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Verification email resent successfully")
+      console.log("✅ Message ID:", info.messageId)
+      console.log("✅ Response:", info.response)
     } catch (err) {
-      console.error("❌ Email failed:", err.message)
-      console.error("Full error:", err)
+      console.error("❌ Email sending failed!")
+      console.error("❌ Error message:", err.message)
+      console.error("❌ Error code:", err.code)
+      console.error("❌ Error response:", err.response)
+      console.error("❌ Full error:", JSON.stringify(err, null, 2))
+      
+      if (err.code === "EAUTH") {
+        console.error("❌ AUTHENTICATION FAILED: Check EMAIL_USER and EMAIL_PASS")
+        console.error("❌ Gmail App Password may have expired or been revoked")
+        console.error("❌ Generate a new App Password in Google Account settings")
+      }
       // DO NOT block resend if email fails
     }
     
@@ -421,9 +442,16 @@ const forgotPassword = async (req, res) => {
     // Send reset email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to send reset password email to:", email)
+      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      await transporter.sendMail({
-        from: SENDER_EMAIL,
+      if (!EMAIL_PASS) {
+        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
+        throw new Error("EMAIL_PASS not configured")
+      }
+      
+      const mailOptions = {
+        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Reset Your Password",
         html: `
@@ -431,15 +459,23 @@ const forgotPassword = async (req, res) => {
           <p>Hi, ${admin.name},</p>
           <p>Click below to reset your password:</p>
           <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+          <p>Or copy and paste this link in your browser:</p>
+          <p style="color:#888;font-size:12px;word-break:break-all;">${resetUrl}</p>
           <p>This link expires in 10 minutes.</p>
           <p>Thank you!</p>
         `
-      })
+      }
       
+      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Reset password email sent successfully")
+      console.log("✅ Message ID:", info.messageId)
     } catch (err) {
-      console.error("❌ Email failed:", err.message)
-      console.error("Full error:", err)
+      console.error("❌ Email sending failed!")
+      console.error("❌ Error message:", err.message)
+      console.error("❌ Error code:", err.code)
+      if (err.code === "EAUTH") {
+        console.error("❌ AUTHENTICATION FAILED: Gmail App Password may have expired")
+      }
       // DO NOT block forgot password if email fails
     }
     
@@ -475,9 +511,16 @@ const resendResetPassword = async (req, res) => {
     // Send reset email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to resend reset password email to:", email)
+      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      await transporter.sendMail({
-        from: SENDER_EMAIL,
+      if (!EMAIL_PASS) {
+        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
+        throw new Error("EMAIL_PASS not configured")
+      }
+      
+      const mailOptions = {
+        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Reset Your Password",
         html: `
@@ -485,15 +528,23 @@ const resendResetPassword = async (req, res) => {
           <p>Hi, ${admin.name},</p>
           <p>Click below to reset your password:</p>
           <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+          <p>Or copy and paste this link in your browser:</p>
+          <p style="color:#888;font-size:12px;word-break:break-all;">${resetUrl}</p>
           <p>This link expires in 10 minutes.</p>
           <p>Thank you!</p>
         `
-      })
+      }
       
+      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Reset password email resent successfully")
+      console.log("✅ Message ID:", info.messageId)
     } catch (err) {
-      console.error("❌ Email failed:", err.message)
-      console.error("Full error:", err)
+      console.error("❌ Email sending failed!")
+      console.error("❌ Error message:", err.message)
+      console.error("❌ Error code:", err.code)
+      if (err.code === "EAUTH") {
+        console.error("❌ AUTHENTICATION FAILED: Gmail App Password may have expired")
+      }
       // DO NOT block resend if email fails
     }
     
