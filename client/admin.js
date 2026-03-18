@@ -190,7 +190,10 @@ async function apiCall(endpoint, options = {}) {
     if (!response.ok) {
       const errorMsg = data.error || data.message || "Request failed"
       const errorDetails = data.details ? ` - ${data.details}` : ""
-      throw new Error(`${errorMsg}${errorDetails}`)
+      // Include full error data for better handling
+      const error = new Error(`${errorMsg}${errorDetails}`)
+      error.responseData = data // Attach full response for detailed error handling
+      throw error
     }
     
     return data
