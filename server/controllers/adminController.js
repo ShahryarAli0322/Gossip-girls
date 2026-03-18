@@ -786,6 +786,125 @@ const updateProfile = async (req, res) => {
   }
 }
 
+// Check Environment Variables (for debugging - doesn't expose sensitive values)
+const checkEnvVars = async (req, res) => {
+  try {
+    const envCheck = {
+      EMAIL_USER: {
+        set: !!process.env.EMAIL_USER,
+        value: process.env.EMAIL_USER ? `${process.env.EMAIL_USER.substring(0, 3)}***` : "Not set",
+        usingDefault: !process.env.EMAIL_USER,
+        actualValue: EMAIL_USER
+      },
+      EMAIL_PASS: {
+        set: !!process.env.EMAIL_PASS,
+        length: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : 0,
+        firstChar: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.substring(0, 1) + "***" : "Not set"
+      },
+      CLIENT_URL: {
+        set: !!process.env.CLIENT_URL,
+        value: process.env.CLIENT_URL || "Not set"
+      },
+      FRONTEND_URL: {
+        set: !!process.env.FRONTEND_URL,
+        value: process.env.FRONTEND_URL || "Not set"
+      },
+      MONGO_URI: {
+        set: !!process.env.MONGO_URI,
+        value: process.env.MONGO_URI ? "Set (hidden)" : "Not set"
+      },
+      JWT_SECRET: {
+        set: !!process.env.JWT_SECRET,
+        value: process.env.JWT_SECRET ? "Set (hidden)" : "Not set (using default)"
+      },
+      PORT: {
+        set: !!process.env.PORT,
+        value: process.env.PORT || "Not set (using default 5000)"
+      }
+    }
+    
+    // Email configuration status
+    const emailStatus = {
+      configured: !!(EMAIL_PASS && EMAIL_USER),
+      transporterReady: false,
+      canSend: false
+    }
+    
+    // Test transporter if EMAIL_PASS is set
+    if (EMAIL_PASS) {
+      try {
+        await transporter.verify()
+        emailStatus.transporterReady = true
+        emailStatus.canSend = true
+      } catch (err) {
+        emailStatus.transporterReady = false
+        emailStatus.canSend = false
+        emailStatus.error = err.message
+        emailStatus.errorCode = err.code
+      }
+    }
+    
+    res.json({
+      success: true,
+      environmentVariables: envCheck,
+      emailConfiguration: emailStatus,
+      recommendations: getRecommendations(envCheck, emailStatus)
+    })
+  } catch (error) {
+    console.error("❌ Environment check failed:", error)
+    res.status(500).json({
+      error: "Failed to check environment",
+      message: error.message
+    })
+  }
+}
+
+function getRecommendations(envCheck, emailStatus) {
+  const recommendations = []
+  
+  if (!envCheck.EMAIL_PASS.set) {
+    recommendations.push({
+      priority: "HIGH",
+      issue: "EMAIL_PASS is not set",
+      fix: "Add EMAIL_PASS environment variable in Render with your Gmail App Password"
+    })
+  }
+  
+  if (envCheck.EMAIL_USER.usingDefault) {
+    recommendations.push({
+      priority: "MEDIUM",
+      issue: "EMAIL_USER is using default value",
+      fix: "Set EMAIL_USER in Render environment variables (currently using: zaraconnecthere@gmail.com)"
+    })
+  }
+  
+  if (envCheck.EMAIL_PASS.set && envCheck.EMAIL_PASS.length !== 16) {
+    recommendations.push({
+      priority: "HIGH",
+      issue: `EMAIL_PASS length is ${envCheck.EMAIL_PASS.length} (should be 16 characters)`,
+      fix: "Gmail App Password should be exactly 16 characters. Generate a new one if needed."
+    })
+  }
+  
+  if (!emailStatus.canSend && envCheck.EMAIL_PASS.set) {
+    recommendations.push({
+      priority: "HIGH",
+      issue: "Email transporter verification failed",
+      fix: "Check if Gmail App Password is correct and not expired. Generate a new App Password if needed."
+    })
+  }
+  
+  if (!envCheck.CLIENT_URL.set && !envCheck.FRONTEND_URL.set) {
+    recommendations.push({
+      priority: "MEDIUM",
+      issue: "CLIENT_URL and FRONTEND_URL not set",
+      fix: "Set CLIENT_URL in Render with your Vercel frontend URL for email links"
+    })
+  }
+  
+  return recommendations
+}
+
 // Test Email (for debugging)
 const testEmail = async (req, res) => {
   try {
@@ -852,5 +971,6 @@ module.exports = {
   getActivity,
   getProfile,
   updateProfile,
+  checkEnvVars,
   testEmail
 }
