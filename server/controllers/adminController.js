@@ -735,6 +735,57 @@ const updateProfile = async (req, res) => {
   }
 }
 
+// Test Email (for debugging)
+const testEmail = async (req, res) => {
+  try {
+    const { email } = req.body
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" })
+    }
+    
+    console.log("🧪 Testing email sending to:", email)
+    console.log("🧪 EMAIL_USER:", EMAIL_USER)
+    console.log("🧪 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
+    
+    if (!EMAIL_PASS) {
+      return res.status(500).json({ 
+        error: "EMAIL_PASS not configured",
+        message: "Please set EMAIL_PASS in environment variables"
+      })
+    }
+    
+    const mailOptions = {
+      from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
+      to: email,
+      subject: "Gossip Girl - Test Email",
+      html: `
+        <h2>Gossip Girl 💋</h2>
+        <p>This is a test email from Gossip Girl Admin system.</p>
+        <p>If you received this, your email configuration is working correctly!</p>
+        <p>Sent at: ${new Date().toLocaleString()}</p>
+      `
+    }
+    
+    const info = await transporter.sendMail(mailOptions)
+    
+    res.json({
+      success: true,
+      message: "Test email sent successfully",
+      messageId: info.messageId,
+      response: info.response
+    })
+  } catch (error) {
+    console.error("❌ Test email failed:", error)
+    res.status(500).json({
+      error: "Failed to send test email",
+      message: error.message,
+      code: error.code,
+      details: error.response
+    })
+  }
+}
+
 module.exports = {
   signup,
   login,
@@ -749,5 +800,6 @@ module.exports = {
   sendBlast,
   getActivity,
   getProfile,
-  updateProfile
+  updateProfile,
+  testEmail
 }
