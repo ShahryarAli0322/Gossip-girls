@@ -23,6 +23,21 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASS || "" // Allow empty string, error will be caught when sending
+  },
+  // Additional Gmail configuration
+  secure: true,
+  tls: {
+    rejectUnauthorized: false
+  }
+})
+
+// Verify transporter connection on startup
+transporter.verify(function (error, success) {
+  if (error) {
+    console.error("❌ Email transporter verification failed:", error.message)
+    console.error("❌ Check EMAIL_USER and EMAIL_PASS configuration")
+  } else {
+    console.log("✅ Email transporter is ready to send emails")
   }
 })
 
@@ -112,9 +127,18 @@ const signup = async (req, res) => {
     // Send verification email (non-blocking - always attempt, catch errors)
     try {
       console.log("📧 Attempting to send verification email to:", email)
+      console.log("📧 From:", SENDER_EMAIL)
+      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      await transporter.sendMail({
-        from: SENDER_EMAIL,
+      // Verify transporter before sending
+      if (!EMAIL_PASS) {
+        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
+        console.error("❌ Please set EMAIL_PASS in Render environment variables")
+        throw new Error("EMAIL_PASS not configured")
+      }
+      
+      const mailOptions = {
+        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Verify Your Email",
         html: `
@@ -122,14 +146,32 @@ const signup = async (req, res) => {
           <p>Hi, ${name},</p>
           <p>Please verify your email by clicking the link below:</p>
           <p><a href="${verificationUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Verify Email</a></p>
+          <p>Or copy and paste this link in your browser:</p>
+          <p style="color:#888;font-size:12px;word-break:break-all;">${verificationUrl}</p>
           <p>Thank you!</p>
         `
-      })
+      }
       
+      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Verification email sent successfully")
+      console.log("✅ Message ID:", info.messageId)
+      console.log("✅ Response:", info.response)
     } catch (err) {
-      console.error("❌ Email failed:", err.message)
-      console.error("Full error:", err)
+      console.error("❌ Email sending failed!")
+      console.error("❌ Error message:", err.message)
+      console.error("❌ Error code:", err.code)
+      console.error("❌ Error response:", err.response)
+      console.error("❌ Full error:", JSON.stringify(err, null, 2))
+      
+      // Log specific Gmail errors
+      if (err.code === "EAUTH") {
+        console.error("❌ AUTHENTICATION FAILED: Check EMAIL_USER and EMAIL_PASS")
+        console.error("❌ Make sure you're using a Gmail App Password, not your regular password")
+      }
+      if (err.code === "EENVELOPE") {
+        console.error("❌ ENVELOPE ERROR: Check email addresses")
+      }
+      
       // DO NOT block signup if email fails - admin can still verify via direct link
     }
     

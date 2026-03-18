@@ -25,6 +25,7 @@ router.post("/resend-verification", adminController.resendVerificationEmail)
 router.post("/forgot-password", adminController.forgotPassword)
 router.post("/resend-reset-password", adminController.resendResetPassword)
 router.post("/reset-password/:token", adminController.resetPassword)
+router.post("/test-email", adminController.testEmail) // Test email endpoint for debugging
 
 // Protected routes (require admin token)
 router.use(verifyAdminToken)
