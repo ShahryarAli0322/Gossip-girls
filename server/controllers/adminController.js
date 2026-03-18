@@ -422,27 +422,10 @@ const forgotPassword = async (req, res) => {
     try {
       console.log("📧 Attempting to send reset password email to:", email)
       console.log("📧 From:", SENDER_EMAIL)
-      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      if (!EMAIL_PASS) {
-        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
-        throw new Error("EMAIL_PASS not configured")
-      }
-      
-      const mailOptions = {
-        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
-        to: email,
-        subject: "Gossip Girl Admin - Reset Your Password",
-        html: `
-          <h2>Gossip Girl 💋</h2>
-          <p>Hi, ${admin.name},</p>
-          <p>Click below to reset your password:</p>
-          <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
-          <p>Or copy and paste this link in your browser:</p>
-          <p style="color:#888;font-size:12px;word-break:break-all;">${resetUrl}</p>
-          <p>This link expires in 10 minutes.</p>
-          <p>Thank you!</p>
-        `
+      if (!resend) {
+        console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
+        throw new Error("RESEND_API_KEY not configured")
       }
       
       const { data, error } = await resend.emails.send({
