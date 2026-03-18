@@ -108,7 +108,7 @@ const signup = async (req, res) => {
     await admin.save()
     
     // Send verification email
-    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossipgirlofisb.qzz.io"
     const verificationUrl = `${frontendUrl}/admin.html?token=${verificationToken}`
     
     // Send verification email (non-blocking - always attempt, catch errors)
@@ -338,7 +338,7 @@ const resendVerificationEmail = async (req, res) => {
     await admin.save()
     
     // Send verification email
-    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossipgirlofisb.qzz.io"
     const verificationUrl = `${frontendUrl}/admin.html?token=${verificationToken}`
     
     // Send verification email (non-blocking - always attempt, catch errors)
