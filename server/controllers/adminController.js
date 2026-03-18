@@ -115,7 +115,8 @@ const signup = async (req, res) => {
       }
       
       const { data, error } = await resend.emails.send({
-        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+        from: `${SENDER_NAME} <${RESEND_FROM_EMAIL}>`,
+        reply_to: REPLY_TO_EMAIL,
         to: email,
         subject: "Gossip Girl Admin - Verify Your Email",
         html: `
@@ -344,7 +345,8 @@ const resendVerificationEmail = async (req, res) => {
       }
       
       const { data, error } = await resend.emails.send({
-        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+        from: `${SENDER_NAME} <${RESEND_FROM_EMAIL}>`,
+        reply_to: REPLY_TO_EMAIL,
         to: email,
         subject: "Gossip Girl Admin - Verify Your Email",
         html: `
@@ -429,7 +431,8 @@ const forgotPassword = async (req, res) => {
       }
       
       const { data, error } = await resend.emails.send({
-        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+        from: `${SENDER_NAME} <${RESEND_FROM_EMAIL}>`,
+        reply_to: REPLY_TO_EMAIL,
         to: email,
         subject: "Gossip Girl Admin - Reset Your Password",
         html: `
@@ -500,7 +503,8 @@ const resendResetPassword = async (req, res) => {
       }
       
       const { data, error } = await resend.emails.send({
-        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+        from: `${SENDER_NAME} <${RESEND_FROM_EMAIL}>`,
+        reply_to: REPLY_TO_EMAIL,
         to: email,
         subject: "Gossip Girl Admin - Reset Your Password",
         html: `
