@@ -281,26 +281,30 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
     showVerification(data.email || email)
   } catch (error) {
     console.error("❌ Signup error:", error)
+    console.error("❌ Signup error.responseData:", error.responseData)
     const errorMessage = error.message || "Signup failed"
     
     // Handle email already exists error with helpful message
     if (errorMessage.includes("Email already exists")) {
       // Check if we have detailed error data from response
       const errorData = error.responseData || {}
+      console.log("📋 Error data:", errorData)
       
       if (errorData.emailExists) {
-        if (!errorData.isVerified) {
+        if (errorData.isVerified === false || errorData.isVerified === undefined) {
           // Email exists but not verified - show verification page with resend option
+          console.log("📧 Showing verification page for unverified email")
           showAlert("This email is already registered but not verified. Please check your email or resend verification.", "error")
           showVerification(email)
-        } else {
+          return
+        } else if (errorData.isVerified === true) {
           // Email exists and verified - suggest login
           showAlert("This email is already registered. Please login instead.", "error")
           setTimeout(() => {
             showLogin()
           }, 2000)
+          return
         }
-        return
       }
       
       // Generic email exists error - suggest login
