@@ -29,21 +29,29 @@ if (!process.env.MONGO_URI) {
   process.exit(1)
 }
 
-// CORS configuration - allow Vercel deployments
+// CORS configuration - allow all frontend domains
 const corsOptions = {
   origin: [
     "http://localhost:3000",
     "http://localhost:5173",
-    "https://gossip-girls-omega.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+    "https://gossip-girls-omega.vercel.app",
+    "https://gossipgirlofisb.qzz.io",
+    CLIENT_URL // Also allow CLIENT_URL from environment
+  ].filter(Boolean), // Remove any undefined values
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"]
 }
 
 const io = new Server(server,{
   cors: {
-    origin: "https://gossip-girls-omega.vercel.app",
-    methods: ["GET", "POST"]
+    origin: [
+      "https://gossip-girls-omega.vercel.app",
+      "https://gossipgirlofisb.qzz.io",
+      CLIENT_URL
+    ].filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true
   }
 })
 
