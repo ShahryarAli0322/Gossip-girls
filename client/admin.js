@@ -375,13 +375,26 @@ async function resendVerificationEmail() {
   
   try {
     showAlert("Sending verification email...", "success")
-    await apiCall("/resend-verification", {
+    const data = await apiCall("/resend-verification", {
       method: "POST",
       body: JSON.stringify({ email })
     })
-    showAlert("✅ Verification email resent! Please check your inbox.", "success")
+    
+    if (data.success) {
+      showAlert("✅ Verification email sent! Please check your inbox (and spam folder).", "success")
+    } else {
+      showAlert(data.error || "Failed to send email", "error")
+    }
   } catch (error) {
-    showAlert(error.message || "Failed to resend email", "error")
+    console.error("❌ Resend verification error:", error)
+    const errorData = error.responseData || {}
+    const errorMessage = errorData.details || errorData.error || error.message || "Failed to resend email"
+    showAlert(`❌ ${errorMessage}`, "error")
+    
+    // Show helpful message for common errors
+    if (errorData.code === "EAUTH" || errorMessage.includes("authentication")) {
+      showAlert("❌ Email authentication failed. Please check EMAIL_PASS in Render environment variables.", "error")
+    }
   }
 }
 

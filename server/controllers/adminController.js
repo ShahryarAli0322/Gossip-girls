@@ -397,6 +397,12 @@ const resendVerificationEmail = async (req, res) => {
       console.log("✅ Verification email resent successfully")
       console.log("✅ Message ID:", info.messageId)
       console.log("✅ Response:", info.response)
+      
+      return res.json({ 
+        success: true,
+        message: "Verification email sent successfully",
+        messageId: info.messageId
+      })
     } catch (err) {
       console.error("❌ Email sending failed!")
       console.error("❌ Error message:", err.message)
@@ -404,15 +410,31 @@ const resendVerificationEmail = async (req, res) => {
       console.error("❌ Error response:", err.response)
       console.error("❌ Full error:", JSON.stringify(err, null, 2))
       
+      let errorMessage = "Failed to send verification email"
+      let errorDetails = err.message
+      
       if (err.code === "EAUTH") {
+        errorMessage = "Email authentication failed"
+        errorDetails = "Gmail App Password may be incorrect or expired. Please check EMAIL_PASS in Render environment variables."
         console.error("❌ AUTHENTICATION FAILED: Check EMAIL_USER and EMAIL_PASS")
         console.error("❌ Gmail App Password may have expired or been revoked")
         console.error("❌ Generate a new App Password in Google Account settings")
+      } else if (err.code === "EENVELOPE") {
+        errorMessage = "Invalid email address"
+        errorDetails = "Please check the email address format"
+      } else if (!EMAIL_PASS) {
+        errorMessage = "Email password not configured"
+        errorDetails = "EMAIL_PASS is not set in Render environment variables"
       }
-      // DO NOT block resend if email fails
+      
+      // Return error to frontend so user knows what went wrong
+      return res.status(500).json({
+        success: false,
+        error: errorMessage,
+        details: errorDetails,
+        code: err.code
+      })
     }
-    
-    res.json({ message: "If email exists, verification email has been sent" })
   } catch (error) {
     console.error("Resend verification error:", error)
     res.status(500).json({ error: "Failed to resend verification email" })
