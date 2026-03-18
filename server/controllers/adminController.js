@@ -899,7 +899,7 @@ const testEmail = async (req, res) => {
     }
     
     console.log("🧪 Testing email sending to:", email)
-    console.log("🧪 SENDER_EMAIL:", SENDER_EMAIL)
+    console.log("🧪 RESEND_FROM_EMAIL:", RESEND_FROM_EMAIL)
     console.log("🧪 RESEND_API_KEY set:", RESEND_API_KEY ? "Yes" : "No")
     
     if (!resend) {
@@ -910,7 +910,8 @@ const testEmail = async (req, res) => {
     }
     
     const { data, error } = await resend.emails.send({
-      from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+      from: `${SENDER_NAME} <${RESEND_FROM_EMAIL}>`,
+      reply_to: REPLY_TO_EMAIL,
       to: email,
       subject: "Gossip Girl - Test Email",
       html: `
