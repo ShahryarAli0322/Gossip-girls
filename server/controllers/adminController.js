@@ -14,8 +14,10 @@ const EMAIL_PASS = process.env.EMAIL_PASS
 // Log email configuration
 console.log("📧 Email Configuration:")
 console.log("  EMAIL_USER:", EMAIL_USER)
-console.log("  EMAIL_USER from env:", process.env.EMAIL_USER || "(not set, using default)")
+console.log("  EMAIL_USER from env:", process.env.EMAIL_USER || "(not set, using default: zaraconnecthere@gmail.com)")
 console.log("  EMAIL_PASS:", EMAIL_PASS ? "✅ Set" : "❌ Not set")
+console.log("  📤 Sender Email (FROM):", EMAIL_USER)
+console.log("  📥 Recipient Email (TO): User's email from signup form")
 
 // Create transporter (will attempt to send even if EMAIL_PASS might be missing - errors will be caught)
 const transporter = nodemailer.createTransport({
