@@ -2,68 +2,35 @@ const Admin = require("../models/Admin")
 const Post = require("../models/Post")
 const jwt = require("jsonwebtoken")
 const crypto = require("crypto")
-const nodemailer = require("nodemailer")
+const { Resend } = require("resend")
 
 const JWT_SECRET = process.env.JWT_SECRET || "gossip-girl-secret-key"
 const JWT_EXPIRY = "7d"
 
-// Email transporter configuration
-const EMAIL_USER = process.env.EMAIL_USER || "zaraconnecthere@gmail.com"
-const EMAIL_PASS = process.env.EMAIL_PASS
+// Email configuration - Using Resend (more reliable than Gmail SMTP)
+const RESEND_API_KEY = process.env.RESEND_API_KEY
+const SENDER_EMAIL = process.env.EMAIL_USER || "zaraconnecthere@gmail.com"
+const SENDER_NAME = "Gossip Girl Admin"
 
 // Log email configuration
-console.log("📧 Email Configuration:")
-console.log("  EMAIL_USER:", EMAIL_USER)
-console.log("  EMAIL_USER from env:", process.env.EMAIL_USER || "(not set, using default: zaraconnecthere@gmail.com)")
-console.log("  EMAIL_PASS:", EMAIL_PASS ? "✅ Set" : "❌ Not set")
-console.log("  📤 Sender Email (FROM):", EMAIL_USER)
+console.log("📧 Email Configuration (Resend):")
+console.log("  RESEND_API_KEY:", RESEND_API_KEY ? "✅ Set" : "❌ Not set")
+console.log("  SENDER_EMAIL:", SENDER_EMAIL)
+console.log("  SENDER_NAME:", SENDER_NAME)
+console.log("  📤 Sender Email (FROM):", SENDER_EMAIL)
 console.log("  📥 Recipient Email (TO): User's email from signup form")
 
-// Create transporter with explicit Gmail SMTP settings and timeout configuration
-// Try port 587 (TLS) first, if that fails, port 465 (SSL) will be used
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // Use TLS (STARTTLS)
-  requireTLS: true,
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS || "" // Allow empty string, error will be caught when sending
-  },
-  // Connection timeout settings (increased for Render)
-  connectionTimeout: 20000, // 20 seconds
-  greetingTimeout: 20000, // 20 seconds
-  socketTimeout: 20000, // 20 seconds
-  // TLS configuration
-  tls: {
-    rejectUnauthorized: false,
-    minVersion: "TLSv1.2"
-  },
-  // Debug mode (set to true for more verbose logging)
-  debug: false,
-  logger: false
-})
+// Initialize Resend
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null
 
-// Verify transporter connection on startup
-transporter.verify(function (error, success) {
-  if (error) {
-    console.error("❌ Email transporter verification failed:", error.message)
-    console.error("❌ Check EMAIL_USER and EMAIL_PASS configuration")
-  } else {
-    console.log("✅ Email transporter is ready to send emails")
-  }
-})
-
-// Verify transporter configuration (warning only, don't block)
-if (!EMAIL_PASS) {
-  console.warn("⚠️  WARNING: EMAIL_PASS not set in .env file. Emails may fail to send!")
-  console.warn("⚠️  To fix: Add EMAIL_PASS=your_gmail_app_password to your .env file")
+// Verify Resend configuration
+if (!RESEND_API_KEY) {
+  console.warn("⚠️  WARNING: RESEND_API_KEY not set in environment variables!")
+  console.warn("⚠️  To fix: Add RESEND_API_KEY=re_xxxxx to your Render environment variables")
+  console.warn("⚠️  Get your API key from: https://resend.com/api-keys")
 } else {
-  console.log("✅ Email configuration loaded (EMAIL_PASS is set)")
+  console.log("✅ Resend email service configured")
 }
-
-const SENDER_EMAIL = EMAIL_USER
-console.log("  SENDER_EMAIL:", SENDER_EMAIL)
 
 // Admin Signup (max 2 admins)
 const signup = async (req, res) => {
@@ -141,17 +108,14 @@ const signup = async (req, res) => {
     try {
       console.log("📧 Attempting to send verification email to:", email)
       console.log("📧 From:", SENDER_EMAIL)
-      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      // Verify transporter before sending
-      if (!EMAIL_PASS) {
-        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
-        console.error("❌ Please set EMAIL_PASS in Render environment variables")
-        throw new Error("EMAIL_PASS not configured")
+      if (!resend) {
+        console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
+        throw new Error("RESEND_API_KEY not configured")
       }
       
-      const mailOptions = {
-        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
+      const { data, error } = await resend.emails.send({
+        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Verify Your Email",
         html: `
@@ -163,27 +127,18 @@ const signup = async (req, res) => {
           <p style="color:#888;font-size:12px;word-break:break-all;">${verificationUrl}</p>
           <p>Thank you!</p>
         `
+      })
+      
+      if (error) {
+        throw error
       }
       
-      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Verification email sent successfully")
-      console.log("✅ Message ID:", info.messageId)
-      console.log("✅ Response:", info.response)
+      console.log("✅ Message ID:", data?.id)
     } catch (err) {
       console.error("❌ Email sending failed!")
       console.error("❌ Error message:", err.message)
-      console.error("❌ Error code:", err.code)
-      console.error("❌ Error response:", err.response)
       console.error("❌ Full error:", JSON.stringify(err, null, 2))
-      
-      // Log specific Gmail errors
-      if (err.code === "EAUTH") {
-        console.error("❌ AUTHENTICATION FAILED: Check EMAIL_USER and EMAIL_PASS")
-        console.error("❌ Make sure you're using a Gmail App Password, not your regular password")
-      }
-      if (err.code === "EENVELOPE") {
-        console.error("❌ ENVELOPE ERROR: Check email addresses")
-      }
       
       // DO NOT block signup if email fails - admin can still verify via direct link
     }
@@ -382,15 +337,14 @@ const resendVerificationEmail = async (req, res) => {
     try {
       console.log("📧 Attempting to resend verification email to:", email)
       console.log("📧 From:", SENDER_EMAIL)
-      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      if (!EMAIL_PASS) {
-        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
-        throw new Error("EMAIL_PASS not configured")
+      if (!resend) {
+        console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
+        throw new Error("RESEND_API_KEY not configured")
       }
       
-      const mailOptions = {
-        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
+      const { data, error } = await resend.emails.send({
+        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Verify Your Email",
         html: `
@@ -402,48 +356,38 @@ const resendVerificationEmail = async (req, res) => {
           <p style="color:#888;font-size:12px;word-break:break-all;">${verificationUrl}</p>
           <p>Thank you!</p>
         `
+      })
+      
+      if (error) {
+        throw error
       }
       
-      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Verification email resent successfully")
-      console.log("✅ Message ID:", info.messageId)
-      console.log("✅ Response:", info.response)
+      console.log("✅ Message ID:", data?.id)
       
       return res.json({ 
         success: true,
         message: "Verification email sent successfully",
-        messageId: info.messageId
+        messageId: data?.id
       })
     } catch (err) {
       console.error("❌ Email sending failed!")
       console.error("❌ Error message:", err.message)
-      console.error("❌ Error code:", err.code)
-      console.error("❌ Error response:", err.response)
       console.error("❌ Full error:", JSON.stringify(err, null, 2))
       
       let errorMessage = "Failed to send verification email"
       let errorDetails = err.message
       
-      if (err.code === "EAUTH") {
-        errorMessage = "Email authentication failed"
-        errorDetails = "Gmail App Password may be incorrect or expired. Please check EMAIL_PASS in Render environment variables."
-        console.error("❌ AUTHENTICATION FAILED: Check EMAIL_USER and EMAIL_PASS")
-        console.error("❌ Gmail App Password may have expired or been revoked")
-        console.error("❌ Generate a new App Password in Google Account settings")
-      } else if (err.code === "EENVELOPE") {
-        errorMessage = "Invalid email address"
-        errorDetails = "Please check the email address format"
-      } else if (!EMAIL_PASS) {
-        errorMessage = "Email password not configured"
-        errorDetails = "EMAIL_PASS is not set in Render environment variables"
+      if (!RESEND_API_KEY) {
+        errorMessage = "Email API key not configured"
+        errorDetails = "RESEND_API_KEY is not set in Render environment variables. Get your API key from https://resend.com/api-keys"
       }
       
       // Return error to frontend so user knows what went wrong
       return res.status(500).json({
         success: false,
         error: errorMessage,
-        details: errorDetails,
-        code: err.code
+        details: errorDetails
       })
     }
   } catch (error) {
@@ -501,9 +445,28 @@ const forgotPassword = async (req, res) => {
         `
       }
       
-      const info = await transporter.sendMail(mailOptions)
+      const { data, error } = await resend.emails.send({
+        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+        to: email,
+        subject: "Gossip Girl Admin - Reset Your Password",
+        html: `
+          <h2>Gossip Girl 💋</h2>
+          <p>Hi, ${admin.name},</p>
+          <p>Click below to reset your password:</p>
+          <p><a href="${resetUrl}" style="display:inline-block;background:#ff2d87;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;margin:20px 0;">Reset Password</a></p>
+          <p>Or copy and paste this link in your browser:</p>
+          <p style="color:#888;font-size:12px;word-break:break-all;">${resetUrl}</p>
+          <p>This link expires in 10 minutes.</p>
+          <p>Thank you!</p>
+        `
+      })
+      
+      if (error) {
+        throw error
+      }
+      
       console.log("✅ Reset password email sent successfully")
-      console.log("✅ Message ID:", info.messageId)
+      console.log("✅ Message ID:", data?.id)
     } catch (err) {
       console.error("❌ Email sending failed!")
       console.error("❌ Error message:", err.message)
@@ -547,15 +510,14 @@ const resendResetPassword = async (req, res) => {
     try {
       console.log("📧 Attempting to resend reset password email to:", email)
       console.log("📧 From:", SENDER_EMAIL)
-      console.log("📧 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
       
-      if (!EMAIL_PASS) {
-        console.error("❌ EMAIL_PASS is not set! Emails will fail to send.")
-        throw new Error("EMAIL_PASS not configured")
+      if (!resend) {
+        console.error("❌ RESEND_API_KEY is not set! Emails will fail to send.")
+        throw new Error("RESEND_API_KEY not configured")
       }
       
-      const mailOptions = {
-        from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
+      const { data, error } = await resend.emails.send({
+        from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
         to: email,
         subject: "Gossip Girl Admin - Reset Your Password",
         html: `
@@ -568,18 +530,18 @@ const resendResetPassword = async (req, res) => {
           <p>This link expires in 10 minutes.</p>
           <p>Thank you!</p>
         `
+      })
+      
+      if (error) {
+        throw error
       }
       
-      const info = await transporter.sendMail(mailOptions)
       console.log("✅ Reset password email resent successfully")
-      console.log("✅ Message ID:", info.messageId)
+      console.log("✅ Message ID:", data?.id)
     } catch (err) {
       console.error("❌ Email sending failed!")
       console.error("❌ Error message:", err.message)
-      console.error("❌ Error code:", err.code)
-      if (err.code === "EAUTH") {
-        console.error("❌ AUTHENTICATION FAILED: Gmail App Password may have expired")
-      }
+      console.error("❌ Full error:", JSON.stringify(err, null, 2))
       // DO NOT block resend if email fails
     }
     
@@ -950,18 +912,18 @@ const testEmail = async (req, res) => {
     }
     
     console.log("🧪 Testing email sending to:", email)
-    console.log("🧪 EMAIL_USER:", EMAIL_USER)
-    console.log("🧪 EMAIL_PASS set:", EMAIL_PASS ? "Yes" : "No")
+    console.log("🧪 SENDER_EMAIL:", SENDER_EMAIL)
+    console.log("🧪 RESEND_API_KEY set:", RESEND_API_KEY ? "Yes" : "No")
     
-    if (!EMAIL_PASS) {
+    if (!resend) {
       return res.status(500).json({ 
-        error: "EMAIL_PASS not configured",
-        message: "Please set EMAIL_PASS in environment variables"
+        error: "RESEND_API_KEY not configured",
+        message: "Please set RESEND_API_KEY in environment variables. Get your API key from https://resend.com/api-keys"
       })
     }
     
-    const mailOptions = {
-      from: `"Gossip Girl Admin" <${SENDER_EMAIL}>`,
+    const { data, error } = await resend.emails.send({
+      from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
       to: email,
       subject: "Gossip Girl - Test Email",
       html: `
@@ -970,15 +932,16 @@ const testEmail = async (req, res) => {
         <p>If you received this, your email configuration is working correctly!</p>
         <p>Sent at: ${new Date().toLocaleString()}</p>
       `
-    }
+    })
     
-    const info = await transporter.sendMail(mailOptions)
+    if (error) {
+      throw error
+    }
     
     res.json({
       success: true,
       message: "Test email sent successfully",
-      messageId: info.messageId,
-      response: info.response
+      messageId: data?.id
     })
   } catch (error) {
     console.error("❌ Test email failed:", error)
