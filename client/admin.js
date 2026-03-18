@@ -63,6 +63,56 @@ function showVerification(email) {
   document.getElementById("verificationEmail").textContent = `Verification email sent to: ${email}`
 }
 
+// Show resend verification option on login failure
+function showResendVerificationOnLogin(email) {
+  const loginSection = document.getElementById("loginSection")
+  if (!loginSection) return
+  
+  // Check if resend button already exists
+  let resendBtn = document.getElementById("resendVerificationBtn")
+  if (!resendBtn) {
+    resendBtn = document.createElement("button")
+    resendBtn.id = "resendVerificationBtn"
+    resendBtn.type = "button"
+    resendBtn.className = "resend-btn"
+    resendBtn.textContent = "Resend Verification Email"
+    resendBtn.onclick = () => {
+      resendVerificationEmailForLogin(email)
+    }
+    
+    // Insert after login form
+    const loginForm = document.getElementById("loginForm")
+    if (loginForm && loginForm.parentNode) {
+      loginForm.parentNode.insertBefore(resendBtn, loginForm.nextSibling)
+    }
+  }
+  resendBtn.style.display = "block"
+}
+
+// Resend verification email from login page
+async function resendVerificationEmailForLogin(email) {
+  if (!email) {
+    showAlert("Email not found", "error")
+    return
+  }
+  
+  try {
+    await apiCall("/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    })
+    showAlert("Verification email resent! Please check your email.", "success")
+    
+    // Hide resend button after successful send
+    const resendBtn = document.getElementById("resendVerificationBtn")
+    if (resendBtn) {
+      resendBtn.style.display = "none"
+    }
+  } catch (error) {
+    showAlert(error.message || "Failed to resend email", "error")
+  }
+}
+
 function showResetPassword(token) {
   showSection("resetPasswordSection")
   document.getElementById("resetPasswordForm").dataset.token = token
@@ -165,7 +215,15 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     showAlert("Login successful!")
     showDashboard()
   } catch (error) {
-    showAlert(error.message || "Login failed", "error")
+    // Check if error is due to unverified email
+    const errorMessage = error.message || "Login failed"
+    if (errorMessage.includes("verify") || errorMessage.includes("verification")) {
+      showAlert(errorMessage, "error")
+      // Show resend verification option
+      showResendVerificationOnLogin(email)
+    } else {
+      showAlert(errorMessage, "error")
+    }
   }
 })
 
@@ -214,16 +272,43 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
 // Verify Email
 async function verifyEmail(token) {
   try {
+    if (!token) {
+      showAlert("No verification token provided", "error")
+      showLogin()
+      return
+    }
+    
+    console.log("🔐 Verifying email with token:", token.substring(0, 10) + "...")
+    
     const data = await apiCall(`/verify-email/${token}`, {
       method: "GET"
     })
     
-    authToken = data.token
-    localStorage.setItem("adminToken", authToken)
-    showAlert("Email verified! You are now logged in.", "success")
-    showDashboard()
+    if (data.token) {
+      authToken = data.token
+      localStorage.setItem("adminToken", authToken)
+      console.log("✅ Email verified, token stored, redirecting to dashboard")
+      
+      // Clear token from URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete("token")
+      window.history.replaceState({}, document.title, url.pathname + url.search)
+      
+      showAlert(data.message || "Email verified! You are now logged in.", "success")
+      showDashboard()
+    } else {
+      throw new Error("No token received from server")
+    }
   } catch (error) {
-    showAlert(error.message || "Verification failed", "error")
+    console.error("❌ Verification error:", error)
+    const errorMessage = error.message || "Verification failed"
+    showAlert(errorMessage, "error")
+    
+    // Clear token from URL on error
+    const url = new URL(window.location.href)
+    url.searchParams.delete("token")
+    window.history.replaceState({}, document.title, url.pathname + url.search)
+    
     showLogin()
   }
 }

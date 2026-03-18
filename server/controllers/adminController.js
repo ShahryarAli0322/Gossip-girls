@@ -94,7 +94,8 @@ const signup = async (req, res) => {
     await admin.save()
     
     // Send verification email
-    const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin.html?token=${verificationToken}`
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const verificationUrl = `${frontendUrl}/admin.html?token=${verificationToken}`
     
     // Send verification email (non-blocking - always attempt, catch errors)
     try {
@@ -177,7 +178,11 @@ const login = async (req, res) => {
     
     // Check if email is verified
     if (!admin.isVerified) {
-      return res.status(401).json({ error: "Please verify your email before logging in" })
+      return res.status(401).json({ 
+        error: "Please verify your email before logging in",
+        requiresVerification: true,
+        email: admin.email
+      })
     }
     
     const isMatch = await admin.comparePassword(password)
@@ -207,23 +212,58 @@ const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params
     
+    if (!token) {
+      return res.status(400).json({ error: "Verification token is required" })
+    }
+    
+    // Find admin by verification token (check expiry)
     const admin = await Admin.findOne({
       verificationToken: token,
       verificationTokenExpiry: { $gt: Date.now() }
     })
     
     if (!admin) {
-      return res.status(400).json({ error: "Invalid or expired verification token" })
+      // Check if token exists but expired
+      const expiredAdmin = await Admin.findOne({ verificationToken: token })
+      if (expiredAdmin) {
+        return res.status(400).json({ 
+          error: "Verification token has expired",
+          details: "Please request a new verification email"
+        })
+      }
+      return res.status(400).json({ 
+        error: "Invalid verification token",
+        details: "The verification link is invalid or has already been used"
+      })
+    }
+    
+    // Check if already verified
+    if (admin.isVerified) {
+      // Still generate token for auto-login
+      const jwtToken = jwt.sign({ id: admin._id }, JWT_SECRET, { expiresIn: JWT_EXPIRY })
+      return res.json({
+        success: true,
+        message: "Email already verified. You are now logged in.",
+        token: jwtToken,
+        admin: {
+          id: admin._id,
+          name: admin.name,
+          email: admin.email,
+          phone: admin.phone
+        }
+      })
     }
     
     // Mark as verified and clear verification token
     admin.isVerified = true
-    admin.verificationToken = undefined
-    admin.verificationTokenExpiry = undefined
+    admin.verificationToken = null
+    admin.verificationTokenExpiry = null
     await admin.save()
     
     // Generate JWT token for auto-login
     const jwtToken = jwt.sign({ id: admin._id }, JWT_SECRET, { expiresIn: JWT_EXPIRY })
+    
+    console.log("✅ Email verified successfully for:", admin.email)
     
     res.json({
       success: true,
@@ -238,7 +278,10 @@ const verifyEmail = async (req, res) => {
     })
   } catch (error) {
     console.error("Verify email error:", error)
-    res.status(500).json({ error: "Failed to verify email" })
+    res.status(500).json({ 
+      error: "Failed to verify email",
+      details: error.message
+    })
   }
 }
 
@@ -265,7 +308,8 @@ const resendVerificationEmail = async (req, res) => {
     await admin.save()
     
     // Send verification email
-    const verificationUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin.html?token=${verificationToken}`
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const verificationUrl = `${frontendUrl}/admin.html?token=${verificationToken}`
     
     // Send verification email (non-blocking - always attempt, catch errors)
     try {
@@ -317,7 +361,8 @@ const forgotPassword = async (req, res) => {
     await admin.save()
     
     // Send email
-    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin/reset-password/${resetToken}`
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const resetUrl = `${frontendUrl}/admin/reset-password/${resetToken}`
     
     // Send reset email (non-blocking - always attempt, catch errors)
     try {
@@ -370,7 +415,8 @@ const resendResetPassword = async (req, res) => {
     await admin.save()
     
     // Send email
-    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5000"}/admin/reset-password/${resetToken}`
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const resetUrl = `${frontendUrl}/admin/reset-password/${resetToken}`
     
     // Send reset email (non-blocking - always attempt, catch errors)
     try {
