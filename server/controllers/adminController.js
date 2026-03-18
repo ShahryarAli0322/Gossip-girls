@@ -424,7 +424,7 @@ const forgotPassword = async (req, res) => {
     await admin.save()
     
     // Send email
-    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossipgirlofisb.qzz.io"
     const resetUrl = `${frontendUrl}/admin/reset-password/${resetToken}`
     
     // Send reset email (non-blocking - always attempt, catch errors)
@@ -496,7 +496,7 @@ const resendResetPassword = async (req, res) => {
     await admin.save()
     
     // Send email
-    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossip-girls-omega.vercel.app"
+    const frontendUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || "https://gossipgirlofisb.qzz.io"
     const resetUrl = `${frontendUrl}/admin/reset-password/${resetToken}`
     
     // Send reset email (non-blocking - always attempt, catch errors)
